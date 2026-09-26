@@ -1,0 +1,3 @@
+import { MessageSquareQuote } from "lucide-react"
+
+export default function AdminTestimonialsPage() { return <main className="admin-page"><header className="app-page-header"><div><p className="app-eyebrow">Content</p><h1>Testimonials</h1><p className="app-page-lead">No testimonial records are stored in the database yet.</p></div></header><section className="admin-panel admin-empty"><MessageSquareQuote size={34} aria-hidden="true" /><h2>No testimonials to manage</h2><p>Existing public testimonials remain curated static content until a moderated content table is introduced.</p></section></main> }

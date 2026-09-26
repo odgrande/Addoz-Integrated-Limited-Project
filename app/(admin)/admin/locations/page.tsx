@@ -1,0 +1,6 @@
+import { headers } from "next/headers"
+import { MapPin } from "lucide-react"
+import { AdminToggle, TaxonomyForm } from "@/features/admin/components/admin-ui"
+import { getAdminTaxonomy } from "@/features/admin/queries"
+
+export default async function AdminLocationsPage() { const locations = await getAdminTaxonomy(await headers(), "locations"); return <main className="admin-page"><header className="app-page-header"><div><p className="app-eyebrow">Taxonomy</p><h1>Locations</h1><p className="app-page-lead">Keep locations available to active roles and archive them safely when unused.</p></div></header><TaxonomyForm resource="locations" /><section className="admin-panel admin-table-wrap"><table className="admin-table"><thead><tr><th>Name</th><th>Slug</th><th>Jobs</th><th>Status</th></tr></thead><tbody>{locations.map(item => <tr key={item.id}><td data-label="Name"><strong>{item.name}</strong></td><td data-label="Slug">{item.slug}</td><td data-label="Jobs">{Number(item.references)}</td><td data-label="Status"><AdminToggle url={`/api/admin/taxonomy/locations/${item.id}`} active={item.active} /></td></tr>)}</tbody></table>{!locations.length && <div className="admin-empty"><MapPin size={32} aria-hidden="true" /><p>No locations configured.</p></div>}</section></main> }

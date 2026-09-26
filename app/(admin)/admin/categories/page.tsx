@@ -1,0 +1,6 @@
+import { headers } from "next/headers"
+import { Tags } from "lucide-react"
+import { AdminToggle, TaxonomyForm } from "@/features/admin/components/admin-ui"
+import { getAdminTaxonomy } from "@/features/admin/queries"
+
+export default async function AdminCategoriesPage() { const categories = await getAdminTaxonomy(await headers(), "categories"); return <main className="admin-page"><header className="app-page-header"><div><p className="app-eyebrow">Taxonomy</p><h1>Categories</h1><p className="app-page-lead">Deactivate unused categories instead of deleting referenced records.</p></div></header><TaxonomyForm resource="categories" /><section className="admin-panel admin-table-wrap"><table className="admin-table"><thead><tr><th>Name</th><th>Slug</th><th>Jobs</th><th>Status</th></tr></thead><tbody>{categories.map(item => <tr key={item.id}><td data-label="Name"><strong>{item.name}</strong></td><td data-label="Slug">{item.slug}</td><td data-label="Jobs">{Number(item.references)}</td><td data-label="Status"><AdminToggle url={`/api/admin/taxonomy/categories/${item.id}`} active={item.active} /></td></tr>)}</tbody></table>{!categories.length && <div className="admin-empty"><Tags size={32} aria-hidden="true" /><p>No categories configured.</p></div>}</section></main> }

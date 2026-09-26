@@ -1,0 +1,426 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --background: #FAF6EB;
+  --foreground: #000000;
+  --card: #FFFFFF;
+  --card-foreground: #000000;
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+  --primary: #800CB6;
+  --primary-foreground: #FFFFFF;
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: #800CB6;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ================================================================
+   ADDOZ DESIGN SYSTEM — Directive 008 · ADDOZ-SLEEK-DESIGN-SPEC.md
+   Bold + restrained. Tokens, base, layout, type, buttons, cards and
+   motion hooks live here. Everything else has its own file:
+     styles/navigation.css  header · dropdowns · drawer · footer · curtain
+     styles/home.css        homepage sections
+     styles/marketplace.css job/company/category/location cards, jobs, job detail
+     styles/patterns.css    shared components (forms, modal, table…)
+   ================================================================ */
+
+/* ── 1. TOKENS ───────────────────────────────────────────────── */
+:root {
+  /* Palette — ADDOZ purple, warm off-white, black, white; yellow + orange as garnish */
+  --addoz-purple:      #800CB6;
+  --addoz-purple-deep: #66098F;
+  --addoz-cream:       #FAF6EB;
+  --addoz-cream-dark:  #F0EADB;
+  --addoz-white:       #FFFFFF;
+  --addoz-black:       #000000;
+  --addoz-ink:         #0E0C11;   /* near black for dramatic sections */
+  --addoz-yellow:      #FABA16;   /* black text only */
+  --addoz-orange:      #FF943B;   /* black text only */
+
+  /* Legacy names kept for older rules */
+  --addoz-cobalt: var(--addoz-purple);
+  --addoz-green:  var(--addoz-purple);
+  --addoz-cream-light: var(--addoz-white);
+
+  /* Ink tints and lines */
+  --addoz-black-80: rgba(0,0,0,0.8);
+  --addoz-black-60: rgba(0,0,0,0.64);
+  --addoz-black-40: rgba(0,0,0,0.55);   /* muted text: clears 4.5:1 on cream */
+  --addoz-black-12: rgba(0,0,0,0.12);
+  --addoz-black-06: rgba(0,0,0,0.06);
+  --addoz-cream-80: rgba(250,246,235,0.82);
+  --addoz-cream-60: rgba(250,246,235,0.64);
+  --line:         rgba(0,0,0,0.12);
+  --line-strong:  rgba(0,0,0,0.24);
+  --line-inverse: rgba(250,246,235,0.16);
+
+  /* Type — seven roles (spec §1) */
+  --font-addoz: var(--font-jakarta, 'Plus Jakarta Sans'), system-ui, sans-serif;
+  --type-display:      clamp(3rem, 13.4vw, 5.75rem);         /* one-column hero; ≥900px .hero sets its own */
+  --type-h1:           clamp(2.5rem, 1.6rem + 3.6vw, 5rem);
+  --type-h2:           clamp(2rem, 1.35rem + 2.5vw, 3.75rem);
+  --type-h2-statement: clamp(2.35rem, 1.4rem + 3.6vw, 4.75rem);
+  --type-h3:           clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+  --type-lead:         clamp(1.0625rem, 0.97rem + 0.4vw, 1.3125rem);
+  --type-body:         clamp(0.9375rem, 0.9rem + 0.15vw, 1.0625rem);
+  --type-small:        0.875rem;
+  --type-label:        0.75rem;
+  --type-micro:        0.6875rem;
+  --leading-display: 0.88;  --tracking-display: -0.055em;
+  --leading-h1: 0.96;       --tracking-h1: -0.05em;
+  --leading-h2: 1.02;       --tracking-h2: -0.04em;
+  --leading-h3: 1.2;        --tracking-h3: -0.02em;
+  --leading-lead: 1.45;
+  --leading-body: 1.6;
+  --tracking-label: 0.1em;
+
+  /* Legacy fluid scale (patterns + apps) mapped onto the roles */
+  --text-xs:   clamp(0.6875rem, 0.66rem + 0.12vw, 0.75rem);
+  --text-sm:   clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);
+  --text-base: var(--type-body);
+  --text-md:   clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --text-lg:   var(--type-lead);
+  --text-xl:   clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --text-2xl:  clamp(1.625rem, 1.3rem + 1.4vw, 2.25rem);
+  --text-3xl:  var(--type-h2);
+  --text-4xl:  var(--type-h1);
+  --text-5xl:  clamp(3rem, 1.9rem + 4.6vw, 6.25rem);
+  --text-display: var(--type-display);
+
+  /* Spacing — 4px base + rhythm (spec §2) */
+  --sp-1: 0.25rem;  --sp-2: 0.5rem;  --sp-3: 0.75rem; --sp-4: 1rem;   --sp-5: 1.25rem; --sp-6: 1.5rem;
+  --sp-8: 2rem;     --sp-10: 2.5rem; --sp-12: 3rem;   --sp-16: 4rem;  --sp-20: 5rem;   --sp-24: 6rem;
+  --space-section:    clamp(4rem, 2.5rem + 4.6vw, 7rem);
+  --space-section-sm: clamp(3rem, 2rem + 3vw, 5rem);
+  --space-heading:    clamp(2rem, 1.4rem + 2vw, 3.5rem);
+  --gap-card:         clamp(0.75rem, 0.5rem + 0.8vw, 1.25rem);
+  --section-h:        clamp(1rem, 0.25rem + 3.75vw, 4rem);   /* page gutter */
+  --gutter:           var(--section-h);
+  --content-max:      1360px;
+  --page-inline:      max(var(--section-h), calc((100% - var(--content-max)) / 2));
+  --section-v:        var(--space-section);                  /* legacy name */
+  --grid-gutter:      clamp(1rem, 0.5rem + 2vw, 2rem);
+  --header-h:         4rem;
+  --measure:          62ch;
+
+  /* Strokes, radii, shadows (spec §5–6) */
+  --border:       1px solid var(--addoz-black);
+  --border-2:     2px solid var(--addoz-black);
+  --border-light: 1px solid var(--line);
+  --border-mid:   1px solid var(--addoz-black-40);
+  --radius-sm:   2px;
+  --radius:      4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-full: 9999px;
+  --radius-card:    8px;
+  --radius-control: 4px;
+  --radius-tag:     3px;
+  --shadow-xs: 2px 2px 0 0 var(--addoz-black);
+  --shadow-sm: 3px 3px 0 0 var(--addoz-black);
+  --shadow:    4px 4px 0 0 var(--addoz-black);
+  --shadow-lg: 6px 6px 0 0 var(--addoz-black);
+  --shadow-xl: 8px 8px 0 0 var(--addoz-black);
+  --shadow-cobalt: 4px 4px 0 0 var(--addoz-purple);
+  --shadow-yellow: 4px 4px 0 0 var(--addoz-yellow);
+  --shadow-orange: 4px 4px 0 0 var(--addoz-orange);
+
+  /* Motion */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in:     cubic-bezier(0.64, 0, 0.78, 0);
+  --dur-fast: 0.18s;
+  --dur:      0.38s;
+  --dur-slow: 0.65s;
+
+  /* Layers */
+  --z-base: 0; --z-above: 10; --z-sticky: 100; --z-nav: 200; --z-overlay: 300;
+  --z-modal: 400; --z-curtain: 500; --z-toast: 600;
+}
+
+/* ── 2. BASE ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  font-family: var(--font-addoz);
+  background-color: var(--addoz-cream);
+  color: var(--addoz-black);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+body { min-height: 100dvh; overflow-x: hidden; font-size: var(--type-body); line-height: var(--leading-body); letter-spacing: -0.005em; }
+img, video, svg { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+:where(h1, h2, h3) { text-wrap: balance; }
+:where(p) { text-wrap: pretty; }
+/* Preflight makes svg block; inline icons stay on the text line */
+:where(a, button, span, p, small, strong, label, li) > :where(svg) { display: inline-block; vertical-align: -0.125em; }
+:focus-visible { outline: 2px solid var(--addoz-purple); outline-offset: 3px; border-radius: var(--radius-sm); }
+::selection { background: var(--addoz-purple); color: #fff; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* ── 3. LAYOUT ───────────────────────────────────────────────── */
+.container { width: 100%; padding-inline: var(--page-inline); }
+.section-pad { padding-block: var(--space-section); padding-inline: var(--page-inline); }
+.section-pad.is-compact { padding-block: var(--space-section-sm); }
+
+/* Section heading: label + H2 on the left, short supporting copy/link on the right */
+.section-heading { display: grid; gap: var(--sp-6); align-items: end; margin-bottom: var(--space-heading); }
+@media (min-width: 900px) { .section-heading { grid-template-columns: minmax(0, 1fr) minmax(15rem, 22rem); gap: var(--sp-12); } }
+.section-heading h2 { font-size: var(--type-h2); font-weight: 800; line-height: var(--leading-h2); letter-spacing: var(--tracking-h2); max-width: 17ch; }
+.section-heading > p,
+.section-heading-aside > p { font-size: var(--type-body); line-height: 1.55; color: var(--addoz-black-80); max-width: 34ch; }
+.section-heading-aside { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); }
+
+/* ── 4. TYPE ROLES (utilities) ───────────────────────────────── */
+.t-display { font-size: var(--type-display); font-weight: 800; line-height: var(--leading-display); letter-spacing: var(--tracking-display); }
+.t-h1 { font-size: var(--type-h1); font-weight: 800; line-height: var(--leading-h1); letter-spacing: var(--tracking-h1); }
+.t-h2 { font-size: var(--type-h2); font-weight: 800; line-height: var(--leading-h2); letter-spacing: var(--tracking-h2); }
+.t-h2-statement { font-size: var(--type-h2-statement); font-weight: 800; line-height: 0.98; letter-spacing: -0.045em; }
+.t-h3 { font-size: var(--type-h3); font-weight: 750; line-height: var(--leading-h3); letter-spacing: var(--tracking-h3); }
+.t-lead { font-size: var(--type-lead); font-weight: 500; line-height: var(--leading-lead); letter-spacing: -0.01em; }
+.t-body { font-size: var(--type-body); line-height: var(--leading-body); }
+.t-small { font-size: var(--type-small); line-height: 1.5; }
+.t-label { font-size: var(--type-label); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; line-height: 1.2; }
+.t-micro { font-size: var(--type-micro); font-weight: 600; letter-spacing: 0.04em; line-height: 1.35; }
+.tabular { font-variant-numeric: tabular-nums; }
+.text-cobalt, .text-purple { color: var(--addoz-purple); }
+.text-yellow { color: var(--addoz-yellow); }
+.text-orange { color: var(--addoz-orange); }
+.text-cream  { color: var(--addoz-cream); }
+.serif-free  { font-family: var(--font-addoz); font-style: normal; }
+/* Set line breaks for desktop headlines; phones balance naturally */
+.desktop-break { display: none; }
+@media (min-width: 900px) { .desktop-break { display: inline; } }
+
+/* Eyebrow: label + short rule */
+.eyebrow { display: flex; align-items: center; gap: 0.75rem; margin-bottom: var(--sp-5); font-size: var(--type-label); font-weight: 700; letter-spacing: var(--tracking-label); line-height: 1.2; text-transform: uppercase; color: var(--addoz-black-60); }
+.eyebrow-line { display: inline-block; width: 1.5rem; height: 1px; background: currentColor; flex-shrink: 0; }
+
+/* Text link: black, underlined, purple on hover */
+.text-link { display: inline-flex; align-items: center; gap: 0.35em; font-weight: 700; color: var(--addoz-black); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.32em; text-decoration-color: var(--line-strong); background: none; border: 0; padding: 0; font-size: inherit; transition: color var(--dur-fast) var(--ease-out), text-decoration-color var(--dur-fast) var(--ease-out); }
+.text-link:hover { color: var(--addoz-purple); text-decoration-color: currentColor; }
+
+/* ── 5. BUTTONS (spec §6) ────────────────────────────────────── */
+/* Rectangular, 2px stroke, flat at rest; hover displaces a hard shadow. The lift uses the
+   `translate` property so GSAP's magnetic `transform` composes with it. */
+.action-button {
+  --btn-h: 3rem; --btn-px: 1.35rem;
+  --btn-bg: var(--addoz-black); --btn-fg: var(--addoz-cream); --btn-bd: var(--addoz-black); --btn-shadow: var(--addoz-black);
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  min-height: var(--btn-h); padding: 0 var(--btn-px);
+  font: 700 0.9375rem/1 var(--font-addoz); letter-spacing: -0.005em; white-space: nowrap; text-decoration: none; user-select: none;
+  color: var(--btn-fg); background: var(--btn-bg); border: 2px solid var(--btn-bd); border-radius: var(--radius-control);
+  box-shadow: 0 0 0 0 var(--btn-shadow); cursor: pointer;
+  transition: translate var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.action-button:hover { translate: -2px -2px; box-shadow: 3px 3px 0 0 var(--btn-shadow); }
+.action-button:active { translate: 0 0; box-shadow: 0 0 0 0 var(--btn-shadow); }
+.action-button:focus-visible { outline: 2px solid var(--addoz-purple); outline-offset: 3px; }
+.action-dark { --btn-bg: var(--addoz-black); --btn-fg: var(--addoz-cream); }
+.action-primary, .action-blue { --btn-bg: var(--addoz-purple); --btn-fg: var(--addoz-white); }
+.action-light { --btn-bg: var(--addoz-white); --btn-fg: var(--addoz-black); }
+.action-yellow { --btn-bg: var(--addoz-yellow); --btn-fg: var(--addoz-black); }
+.action-orange { --btn-bg: var(--addoz-orange); --btn-fg: var(--addoz-black); }
+.action-invert { --btn-bg: transparent; --btn-fg: var(--addoz-cream); --btn-bd: var(--addoz-cream); --btn-shadow: var(--addoz-cream); }
+.action-invert:hover { --btn-bg: var(--addoz-cream); --btn-fg: var(--addoz-black); }
+.action-ghost { --btn-bg: transparent; --btn-fg: var(--addoz-black); --btn-bd: transparent; }
+.action-ghost:hover { translate: 0 0; box-shadow: none; background: var(--addoz-black-06); }
+.action-sm { --btn-h: 2.5rem; --btn-px: 1rem; font-size: 0.8125rem; }
+.action-lg { --btn-h: 3.5rem; --btn-px: 1.75rem; font-size: 1rem; }
+.action-block { width: 100%; }
+.action-button:disabled, .action-button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; translate: 0 0; box-shadow: none; }
+.action-spinner { animation: addoz-spin 0.8s linear infinite; }
+@keyframes addoz-spin { to { transform: rotate(360deg); } }
+
+/* ── 6. CARD LEVELS (spec §5) ────────────────────────────────── */
+.card-flat { background: transparent; }
+.card-outline { background: var(--addoz-white); border: 1px solid var(--line); border-radius: var(--radius-card); }
+.card-frame { background: var(--addoz-white); border: 1px solid var(--addoz-black); border-radius: var(--radius-card); transition: translate var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.card-frame.is-interactive:hover, .card-frame.is-interactive:focus-within { translate: -2px -2px; box-shadow: var(--shadow); }
+.card-raised { background: var(--addoz-white); border: 2px solid var(--addoz-black); border-radius: var(--radius-card); box-shadow: var(--shadow); }
+.card-image { position: relative; overflow: hidden; background: var(--addoz-cream-dark); border: 1px solid var(--addoz-black); border-radius: var(--radius-card); }
+.card-image img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Small shared marks */
+.status-dot { position: relative; display: inline-block; width: 0.5rem; height: 0.5rem; flex-shrink: 0; border-radius: 50%; background: var(--addoz-orange); }
+.tiny-dot { display: inline-block; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: currentColor; }
+
+/* ── 7. GSAP HOOKS ───────────────────────────────────────────── */
+/* SplitText line masks get room for ascenders/descenders so tight leading never clips a glyph */
+.reveal-line-mask { padding-block: 0.08em 0.16em; margin-block: -0.08em -0.16em; }
+[data-magnetic] { position: relative; }
+
+/* ── 8. SCROLLBAR, PRINT, REDUCED MOTION ─────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--addoz-cream); }
+::-webkit-scrollbar-thumb { background: var(--addoz-black-40); border-radius: var(--radius-full); border: 2px solid var(--addoz-cream); }
+::-webkit-scrollbar-thumb:hover { background: var(--addoz-black-80); }
+
+@media print {
+  .site-header, .nav-drawer, .page-curtain, .opportunity-ticker, .toast-stack, .back-top { display: none !important; }
+  body { background: #fff; color: #000; }
+  .job-card { box-shadow: none; border: 1px solid #ccc; }
+}
+
+/* All GSAP motion is gated in JS with gsap.matchMedia(); CSS removes transitions too */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .page-curtain { display: none !important; }
+}

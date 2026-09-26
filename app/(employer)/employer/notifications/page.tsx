@@ -1,0 +1,6 @@
+import { headers } from "next/headers"
+import { Bell } from "lucide-react"
+import { EmployerNotificationActions } from "@/features/employers/components/employer-ui"
+import { getEmployerNotifications } from "@/features/employers/queries"
+
+export default async function EmployerNotificationsPage() { const notifications = await getEmployerNotifications(await headers()); const unread = notifications.some(item => !item.read); return <main className="employer-page"><header className="app-page-header"><div><p className="app-eyebrow">Company signal</p><h1>Notifications</h1><p className="app-page-lead">New applications and account reminders in one place.</p></div><EmployerNotificationActions unread={unread} /></header>{notifications.length ? <section className="employer-panel"><ul className="employer-notification-list">{notifications.map(item => <li className={item.read ? "is-read" : ""} key={item.id}><Bell size={18} aria-hidden="true" /><div><strong>{item.title}</strong><p>{item.body}</p></div><time>{item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short" }) : ""}</time></li>)}</ul></section> : <section className="employer-panel employer-empty"><Bell size={32} aria-hidden="true" /><h2>No notifications</h2><p>New applicant activity will appear here.</p></section>}</main> }

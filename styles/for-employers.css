@@ -1,0 +1,228 @@
+/* ADDOZ — for-employers pages (Directive 009). Prefix: fe- */
+
+/* ================= Hero ================= */
+
+.fe-hero-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-10);
+}
+
+.fe-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.fe-hero-copy h1 { text-wrap: balance; max-width: 20ch; }
+.fe-hero-copy .cluster { margin-top: var(--sp-3); }
+
+.fe-hero-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--addoz-black);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  background: var(--addoz-cream-dark);
+}
+.fe-hero-photo img { object-fit: cover; }
+
+@media (min-width: 1024px) {
+  .fe-hero-grid { flex-direction: row; align-items: center; gap: var(--sp-12); }
+  .fe-hero-copy { flex: 1 1 52%; }
+  .fe-hero-media { flex: 1 1 44%; }
+}
+
+/* ================= Value proposition (benefits) ================= */
+
+.fe-benefits {
+  list-style: none;
+  margin: var(--space-heading) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-8);
+}
+.fe-benefit { display: flex; flex-direction: column; gap: var(--sp-2); }
+.fe-benefit-num {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--addoz-black);
+}
+.fe-benefit h3 { margin: 0; }
+.fe-benefit p { margin: 0; max-width: 42ch; }
+
+@media (min-width: 768px) {
+  .fe-benefits { grid-template-columns: repeat(3, 1fr); gap: var(--sp-6); }
+}
+
+/* ================= Hiring workflow track ================= */
+
+.fe-track {
+  list-style: none;
+  margin: var(--space-heading) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.fe-track-step { display: flex; align-items: center; gap: var(--sp-4); }
+.fe-track-num {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--addoz-black);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: var(--addoz-cream);
+}
+.fe-track-label { flex: 1; margin: 0; }
+.fe-track-arrow { flex: none; color: var(--addoz-black-40); transform: rotate(90deg); }
+
+@media (min-width: 1024px) {
+  .fe-track { flex-direction: row; flex-wrap: wrap; }
+  .fe-track-step { flex-direction: column; text-align: center; flex: 1 1 14%; min-width: 9rem; gap: var(--sp-3); }
+  .fe-track-label { text-align: center; }
+  .fe-track-arrow { display: none; }
+}
+
+/* ================= Posting a job ================= */
+
+.fe-posting-grid {
+  margin-top: var(--space-heading);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+}
+.fe-form-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+}
+.fe-form-summary li { display: flex; align-items: center; gap: var(--sp-3); color: var(--addoz-black-80); }
+.fe-form-summary svg { flex: none; color: var(--addoz-purple); }
+
+.fe-posting-preview { max-width: 26rem; }
+.fe-posting-preview-label { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+
+@media (min-width: 768px) {
+  .fe-form-summary { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  .fe-posting-grid { flex-direction: row; align-items: center; gap: var(--sp-10); }
+  .fe-form-summary { flex: 1 1 52%; grid-template-columns: 1fr 1fr; }
+  .fe-posting-preview { flex: 1 1 40%; margin-inline: auto; }
+}
+
+.fe-copy { max-width: 62ch; margin: var(--space-heading) 0 var(--sp-6); }
+
+/* ================= Applicant management flow ================= */
+
+.fe-flow {
+  list-style: none;
+  margin: var(--space-heading) 0 var(--sp-6);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.fe-flow-step { display: flex; align-items: center; gap: var(--sp-2); }
+.fe-flow-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid rgba(250, 246, 235, 0.42);
+  border-radius: 999px;
+  background: rgba(250, 246, 235, 0.08);
+  color: var(--addoz-white);
+  font-weight: 600;
+}
+.fe-flow-arrow { flex: none; color: var(--addoz-cream-80); }
+
+/* Heading + aside read as one unit instead of the aside drifting to the far edge */
+@media (min-width: 900px) {
+  .section-heading.fe-heading-tight {
+    grid-template-columns: minmax(0, max-content) minmax(15rem, 24rem);
+    justify-content: start;
+    gap: var(--sp-6) var(--sp-16, 4rem);
+  }
+}
+.fe-manage .fe-flow { margin-top: 0; }
+.fe-manage .fe-copy { margin: var(--sp-8) 0 0; color: var(--addoz-white); }
+.fe-manage .fe-copy { max-width: 60ch; }
+
+/* ================= Testimonial ================= */
+
+.fe-testimonial {
+  margin: var(--space-heading) 0 0;
+  padding: var(--sp-8);
+  max-width: 56rem;
+}
+.fe-testimonial-quote { margin: 0 0 var(--sp-4); max-width: none; }
+.fe-testimonial-name { display: flex; align-items: center; gap: var(--sp-3); font-weight: 600; }
+.fe-testimonial-role { font-weight: 400; color: var(--addoz-black-60); }
+.fe-testimonial-role::before { content: "· "; }
+
+/* ================= Closing CTA ================= */
+
+.fe-closing { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-5); }
+.fe-closing .t-lead { color: var(--addoz-cream-80); margin: 0; }
+
+/* ================= Post-a-job: what happens next ================= */
+
+.fe-next-title { margin: 0 0 var(--sp-3); }
+.fe-next-list {
+  margin: 0;
+  padding-left: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 62ch;
+}
+
+/* ================= JobPostForm additions: draft autosave + progress ================= */
+
+.fe-draft-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: var(--addoz-cream-dark);
+}
+.fe-draft-banner-text { margin: 0; color: var(--addoz-black-80); }
+
+.fe-progress { margin-bottom: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-2); }
+.fe-progress-track {
+  height: 6px;
+  border-radius: var(--radius-tag);
+  background: var(--addoz-black-12);
+  overflow: hidden;
+}
+.fe-progress-fill {
+  height: 100%;
+  background: var(--addoz-purple);
+  transition: width var(--dur, 0.3s) var(--ease-out, ease);
+}
+.fe-progress-label { margin: 0; color: var(--addoz-black-60); }
+.fe-draft-status { color: var(--addoz-black-40); }
+
+.fe-step-count { margin-left: auto; color: var(--addoz-black-40); }
+
+@media (min-width: 480px) {
+  .fe-draft-banner { flex-direction: row; align-items: center; justify-content: space-between; }
+  .fe-draft-banner-text { flex: 1; }
+}
+@media (max-width: 479px) {
+  .fe-step-count { display: none; }
+}

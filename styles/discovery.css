@@ -1,0 +1,84 @@
+/* ADDOZ — discovery styles (Directive 009)
+   Companies, categories and locations: browse + detail pages. Card-level styling
+   (company/category/location cards) lives in styles/marketplace.css; this file only
+   covers page-specific layout that those shared cards sit inside. Prefix: dc-. */
+
+/* ================================================================
+   SHARED — quick-filter chip groups (category/location detail)
+   ================================================================ */
+.dc-chip-filters { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+@media (min-width: 768px) { .dc-chip-filters { flex-direction: row; flex-wrap: wrap; gap: var(--sp-6); } }
+.dc-chip-group { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+@media (min-width: 768px) { .dc-chip-group { flex: 1 1 16rem; } }
+
+/* ================================================================
+   COMPANIES INDEX (/companies)
+   ================================================================ */
+.dc-industry-filter { display: flex; flex-direction: column; gap: var(--sp-2); margin: var(--sp-5) 0; }
+
+.dc-employer-cta { position: relative; overflow: hidden; }
+.dc-cta-shape { position: absolute; bottom: clamp(0.5rem, -1rem + 3vw, 1.5rem); right: var(--page-inline); width: clamp(3rem, 2rem + 3vw, 4.5rem); height: clamp(3rem, 2rem + 3vw, 4.5rem); opacity: 0.85; pointer-events: none; }
+@media (max-width: 639px) { .dc-cta-shape { display: none; } }
+
+/* ================================================================
+   COMPANY DETAIL (/companies/[slug]) — job-detail header language,
+   scaled to a company: large mark + name, then a two-column body.
+   ================================================================ */
+.dc-company-hero { display: flex; flex-direction: column; gap: var(--sp-5); }
+.dc-company-hero-row { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-4); }
+@media (min-width: 640px) { .dc-company-hero-row { flex-direction: row; align-items: center; gap: var(--sp-5); } }
+.dc-company-hero-id { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.dc-company-hero-id h1 { margin: 0; max-width: 20ch; text-wrap: balance; }
+.dc-company-hero-meta { font-size: var(--text-md); font-weight: 600; color: var(--addoz-black-60); }
+.dc-company-hero-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.dc-company-hero-size { font-size: var(--text-sm); font-weight: 700; color: var(--addoz-black-40); }
+
+.dc-company-body { display: grid; gap: var(--sp-8); align-items: start; }
+@media (min-width: 1024px) { .dc-company-body { grid-template-columns: minmax(0, 1fr) minmax(17rem, 20rem); gap: clamp(2rem, 1rem + 2.5vw, 4rem); } }
+.dc-company-main { display: flex; flex-direction: column; gap: var(--sp-8); min-width: 0; }
+.dc-company-main h2 { margin-bottom: var(--sp-3); }
+.dc-company-overview { font-size: var(--type-lead); line-height: 1.5; letter-spacing: -0.01em; max-width: 44ch; }
+
+.dc-company-aside { display: flex; flex-direction: column; gap: var(--sp-4); }
+@media (min-width: 1024px) { .dc-company-aside { position: sticky; top: calc(var(--header-h) + 1.5rem); } }
+.dc-fact-panel { display: flex; flex-direction: column; gap: var(--sp-4); padding: clamp(1.25rem, 1rem + 1vw, 1.75rem); }
+.dc-fact-panel h2 { margin: 0; }
+.dc-fact-list { display: flex; flex-direction: column; gap: var(--sp-3); margin: 0; }
+.dc-fact-list > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--line); }
+.dc-fact-list > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.dc-fact-list dt { font-size: var(--text-sm); font-weight: 600; color: var(--addoz-black-40); }
+.dc-fact-list dd { font-size: var(--text-sm); font-weight: 700; text-align: right; }
+.dc-fact-note { display: flex; flex-direction: column; gap: var(--sp-2); font-size: var(--text-xs); line-height: 1.5; color: var(--addoz-black-60); }
+
+/* ================================================================
+   CATEGORIES INDEX (/categories) — hero grid, then a filterable,
+   sticky-indexed A–Z browser grouped by categoryGroups.
+   ================================================================ */
+.dc-categories-hero, .dc-locations-hero { position: relative; overflow: hidden; }
+.dc-hero-shape { position: absolute; top: clamp(0.5rem, -1rem + 3vw, 2rem); right: var(--page-inline); width: clamp(3rem, 2rem + 3vw, 5rem); height: clamp(3rem, 2rem + 3vw, 5rem); opacity: 0.9; pointer-events: none; }
+@media (max-width: 639px) { .dc-hero-shape { display: none; } }
+
+.dc-category-search { max-width: 26rem; margin-bottom: var(--sp-7); }
+
+.dc-az-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-8); align-items: start; }
+@media (min-width: 1024px) { .dc-az-layout { grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(2rem, 1rem + 2vw, 3.5rem); } }
+
+.dc-group-index { display: none; }
+@media (min-width: 1024px) {
+  .dc-group-index { display: block; position: sticky; top: calc(var(--header-h) + 1.5rem); max-height: calc(100vh - var(--header-h) - 3rem); overflow-y: auto; }
+  .dc-group-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-left: 2px solid var(--line); }
+  .dc-group-index a { display: block; padding: 0.4rem 0 0.4rem var(--sp-4); margin-left: -2px; border-left: 2px solid transparent; font-size: var(--text-sm); font-weight: 600; color: var(--addoz-black-60); transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+  .dc-group-index a:hover, .dc-group-index a:focus-visible { color: var(--addoz-black); border-left-color: var(--addoz-black); }
+}
+
+.dc-az-groups { display: flex; flex-direction: column; gap: var(--space-heading); min-width: 0; }
+.dc-az-group { scroll-margin-top: calc(var(--header-h) + 1rem); }
+.dc-az-group h3 { margin-bottom: 0.2rem; }
+.dc-az-group-line { font-size: var(--text-sm); color: var(--addoz-black-60); margin: 0 0 var(--sp-4); max-width: 52ch; }
+
+/* ================================================================
+   LOCATIONS INDEX (/locations) — featured grid, then every area
+   grouped by state. Purely data-driven so more states/areas just work.
+   ================================================================ */
+.dc-location-groups { display: flex; flex-direction: column; gap: var(--space-heading); }
+.dc-location-group h3 { margin-bottom: var(--sp-4); }

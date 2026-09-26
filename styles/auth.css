@@ -1,0 +1,415 @@
+/* ADDOZ — auth styles (Directive 009).
+   Two groups of classes:
+   - Fixed AuthShell classes (auth-*) — the DOM in components/layout/auth-shell.tsx
+     is final; this file only supplies their look across breakpoints.
+   - New au-* classes for whatever each /auth/* page renders inside the shell. */
+
+/* ================= AuthShell — compact brand band first (<1024) =================
+   Phones and tablets: one band holding logo + back link, a short headline and a
+   small thumbnail, then the form straight after. Role variants:
+   [data-auth-role="candidate"] purple + individual portrait (default)
+   [data-auth-role="employer"]  ink + yellow/purple accents + team photo */
+
+.auth-shell {
+  --auth-panel: var(--addoz-purple);
+  --auth-panel-fg: var(--addoz-white);
+  --auth-panel-muted: var(--addoz-cream-80);
+  --auth-accent: var(--addoz-yellow);
+  --auth-frame: var(--addoz-black);
+  --auth-photo-size: 300% auto;          /* one strip of the three-person editorial */
+  --auth-photo-pos: 100% 7%;             /* right strip, head room kept */
+  --auth-thumb-pos: 100% 4%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--addoz-cream);
+}
+.auth-shell[data-auth-role="employer"] {
+  --auth-panel: var(--addoz-ink);
+  --auth-panel-fg: var(--addoz-cream);
+  --auth-panel-muted: var(--addoz-cream-80);
+  --auth-accent: var(--addoz-yellow);
+  --auth-frame: var(--addoz-purple);
+  --auth-photo-size: cover;
+  --auth-photo-pos: 50% 58%;
+  --auth-thumb-pos: 52% 50%;
+}
+
+.auth-brand {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--page-inline) var(--sp-5);
+  background: var(--auth-panel);
+  color: var(--auth-panel-fg);
+}
+
+.auth-brand-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.auth-logo .brand-wordmark { color: var(--auth-panel-fg); }
+.auth-logo .brand-wordmark > span:first-child { color: var(--auth-accent); }
+.auth-logo .brand-spark { background: var(--addoz-yellow); color: var(--addoz-black); }
+.auth-shell[data-auth-role="employer"] .auth-logo .brand-spark { background: var(--addoz-purple); color: var(--addoz-white); }
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  padding-inline: var(--sp-2);
+  margin-right: calc(var(--sp-2) * -1);
+  color: var(--auth-panel-muted);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.auth-back:hover { color: var(--auth-panel-fg); }
+
+.auth-brand-body {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.auth-brand-copy { flex: 1; min-width: 0; }
+.auth-kicker { margin: 0 0 var(--sp-1); color: var(--auth-accent); }
+.auth-shell[data-auth-role="candidate"] .auth-kicker { color: var(--addoz-cream-80); }
+.auth-statement {
+  margin: 0;
+  font-size: clamp(1.35rem, 1rem + 1.6vw, 2rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--auth-panel-fg);
+}
+.auth-mission,
+.auth-points { display: none; }
+
+.auth-portrait {
+  position: relative;
+  flex: none;
+  width: 4.5rem;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: var(--addoz-cream-dark);
+  border: 2px solid var(--auth-frame);
+  border-radius: var(--radius-card);
+  box-shadow: 3px 3px 0 var(--auth-frame);
+}
+.auth-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--auth-thumb-pos);
+}
+.auth-shell[data-auth-role="candidate"] .auth-portrait img { object-position: 100% 7%; }
+.auth-shell[data-auth-role="employer"] .auth-portrait { width: 6rem; aspect-ratio: 4 / 3; }
+.auth-shell[data-auth-role="employer"] .auth-portrait img { object-position: 52% 50%; }
+
+.auth-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.auth-main-inner {
+  flex: 1;
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+  padding: var(--sp-8) var(--page-inline) var(--sp-12);
+}
+
+.auth-legal {
+  padding: var(--sp-4) var(--page-inline) var(--sp-8);
+  text-align: center;
+  color: var(--addoz-black-60);
+}
+
+/* Small phones: headline only beside a smaller thumbnail */
+@media (max-width: 399px) {
+  .auth-kicker { display: none; }
+  .auth-portrait { width: 3.5rem; }
+  .auth-shell[data-auth-role="employer"] .auth-portrait { width: 4.5rem; }
+}
+
+/* ================= Tablet band (768–1023) ================= */
+
+@media (min-width: 768px) {
+  .auth-brand { padding: var(--sp-4) var(--page-inline) var(--sp-6); gap: var(--sp-4); }
+  .auth-brand-body { max-width: 44rem; width: 100%; margin-inline: auto; gap: var(--sp-6); }
+  .auth-portrait { width: 5.5rem; }
+  .auth-shell[data-auth-role="employer"] .auth-portrait { width: 7.5rem; }
+  .auth-main-inner { padding-top: var(--sp-10); }
+}
+
+/* ================= Desktop two-column (≥1024) ================= */
+
+@media (min-width: 1024px) {
+  .auth-shell { flex-direction: row; }
+
+  .auth-brand {
+    flex: 1 1 46%;
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+    padding: var(--sp-8);
+    overflow: hidden;
+  }
+  .auth-brand-body {
+    flex: 1;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-8);
+  }
+  .auth-brand-copy { flex: none; }
+  .auth-kicker { margin-bottom: var(--sp-3); }
+  .auth-statement {
+    font-size: clamp(2.25rem, 0.9rem + 2.4vw, 3.75rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+    margin-bottom: var(--sp-4);
+  }
+  .auth-mission { display: block; margin: 0; max-width: 44ch; line-height: 1.55; color: var(--auth-panel-muted); }
+  .auth-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    list-style: none;
+    margin: var(--sp-5) 0 0;
+    padding: 0;
+  }
+  .auth-points li {
+    padding: var(--sp-1) var(--sp-3);
+    border: 1px solid var(--addoz-yellow);
+    border-radius: 999px;
+    font-size: var(--text-sm, 0.875rem);
+    font-weight: 600;
+    color: var(--addoz-cream);
+  }
+
+  /* The photo fills what is left of the panel height, framed like the homepage cards.
+     Candidate: a portrait-shaped card so the single strip is never cut to a face-only band. */
+  .auth-portrait,
+  .auth-shell[data-auth-role="employer"] .auth-portrait {
+    flex: 1 1 0;
+    width: auto;
+    min-height: 12rem;
+    aspect-ratio: auto;
+    margin: 0 6px 6px 0;
+    box-shadow: 6px 6px 0 var(--auth-frame);
+  }
+  .auth-shell[data-auth-role="candidate"] .auth-portrait {
+    width: min(100%, 21rem);
+    max-height: 30rem;
+  }
+  .auth-portrait img { object-position: var(--auth-photo-pos); }
+
+  .auth-main {
+    flex: 1 1 54%;
+    justify-content: center;
+    min-height: 100dvh;
+  }
+  .auth-main-inner { flex: none; padding: var(--sp-10); }
+}
+@media (min-width: 1024px) and (max-height: 640px) { .auth-portrait { display: none; } }
+
+/* ================= Minimal, reduced-motion-safe entrance ================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  .auth-main-inner { animation: au-fade-up var(--dur, 0.5s) var(--ease-out, ease) both; }
+  .auth-brand { transition: background-color 0.25s var(--ease-out, ease); }
+}
+
+@keyframes au-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ================= Auth page content (au-*) ================= */
+
+.au-head { margin-bottom: var(--sp-6); }
+.au-head .eyebrow { margin-bottom: var(--sp-3); }
+.au-lead { margin: 0; max-width: 44ch; color: var(--addoz-black-60); }
+
+.au-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+
+.au-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.au-inline-link { min-height: 44px; display: inline-flex; align-items: center; }
+
+.au-links {
+  margin-top: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.au-switch { margin: 0; color: var(--addoz-black-60); }
+
+.au-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* ---------- Password field + show/hide toggle ---------- */
+
+.au-password-wrap {
+  position: relative;
+  display: block;
+}
+.au-password-input { padding-right: var(--sp-10); width: 100%; }
+.au-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--sp-2);
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  color: var(--addoz-black-60);
+  cursor: pointer;
+}
+.au-password-toggle:hover { color: var(--addoz-black); }
+
+/* ---------- Password strength meter (register) ---------- */
+
+.au-strength { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: calc(var(--sp-4) * -1); }
+.au-strength-track { display: flex; gap: var(--sp-2); }
+.au-strength-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-tag);
+  background: var(--addoz-black-12);
+}
+.au-strength-segment.is-filled.is-weak { background: var(--addoz-orange); }
+.au-strength-segment.is-filled.is-fair { background: var(--addoz-yellow); }
+.au-strength-segment.is-filled.is-strong { background: var(--addoz-purple); }
+.au-strength-label { margin: 0; color: var(--addoz-black-60); }
+
+/* ---------- Password requirements checklist (reset) ---------- */
+
+.au-requirements {
+  list-style: none;
+  margin: calc(var(--sp-4) * -1) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2) var(--sp-4);
+}
+.au-requirements li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--addoz-black-60);
+}
+.au-requirements li.is-met { color: var(--addoz-black); }
+.au-requirements li svg { flex: none; }
+
+/* ---------- OTP boxes (verify) ---------- */
+
+.au-otp {
+  display: flex;
+  gap: clamp(0.4rem, 2.2vw, 0.75rem);
+}
+.au-otp-box {
+  width: clamp(2.6rem, 14vw, 3.25rem);
+  height: 3.25rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--addoz-white);
+  color: var(--addoz-black);
+}
+.au-otp-box:focus-visible {
+  outline: 2px solid var(--addoz-purple);
+  outline-offset: 2px;
+}
+.au-otp.is-invalid .au-otp-box { border-color: var(--addoz-orange); }
+
+/* ---------- Error summary ---------- */
+
+.au-error-summary {
+  border: 1px solid var(--addoz-orange);
+  border-radius: var(--radius-card);
+  padding: var(--sp-4);
+  background: var(--addoz-cream-dark);
+}
+.au-error-summary-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 600;
+  color: var(--addoz-black);
+}
+.au-error-summary ul {
+  margin: var(--sp-2) 0 0;
+  padding-left: var(--sp-6);
+  color: var(--addoz-black-60);
+}
+
+/* ---------- Result / success panels (login, verify, forgot, reset) ---------- */
+
+.au-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-4);
+}
+.au-result-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--addoz-cream-dark);
+  color: var(--addoz-purple);
+}
+
+/* ---------- Phone tightening (360–430) ---------- */
+
+@media (max-width: 479px) {
+  .auth-main-inner { padding-inline: var(--page-inline); }
+  .au-form-row { flex-direction: column; align-items: flex-start; }
+  .au-requirements { grid-template-columns: 1fr; }
+}
+
+/* ================= Terms checkbox ================= */
+.auth-shell .check-text { display: block; }
