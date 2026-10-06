@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { ActionButton, AppLink, Checkbox, FormField, Input } from "@/components/patterns"
 import type { AuthRole } from "@/components/layout/auth-role"
 import { PasswordField } from "./password-field"
@@ -34,6 +34,18 @@ export function LoginForm({ role, redirect }: { role: AuthRole; redirect?: strin
   const [errors, setErrors] = useState<Errors>({})
   const [status, setStatus] = useState<"editing" | "submitting">("editing")
   const top = useRef<HTMLDivElement>(null)
+  const form = useRef<HTMLFormElement>(null)
+  // Until the page's script has loaded, the button can't submit (a plain browser
+  // submit would just reload the page and wipe what was typed). On slow
+  // connections people often type before then, so keep anything already typed.
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const typedEmail = form.current?.querySelector<HTMLInputElement>('input[type="email"]')?.value
+    const typedPassword = form.current?.querySelector<HTMLInputElement>('input[autocomplete="current-password"]')?.value
+    if (typedEmail) setAccount(current => current || typedEmail)
+    if (typedPassword) setPassword(current => current || typedPassword)
+    setReady(true)
+  }, [])
   const router = useRouter()
   const employer = role === "employer"
   const admin = role === "admin"
@@ -73,8 +85,10 @@ export function LoginForm({ role, redirect }: { role: AuthRole; redirect?: strin
           top.current?.scrollIntoView({ behavior: "smooth", block: "start" })
           return
         }
-        router.push(destination)
-        router.refresh()
+        // A full load into the workspace: the new session cookie is sent with the
+        // first request, and there's no client-router push + refresh race that
+        // could leave the screen blank until a manual reload.
+        window.location.assign(destination)
       },
       onError: (ctx) => {
         if (ctx.error.code === "EMAIL_NOT_VERIFIED") {
@@ -100,7 +114,7 @@ export function LoginForm({ role, redirect }: { role: AuthRole; redirect?: strin
 
     <ErrorSummary errors={Object.values(errors).filter((message): message is string => Boolean(message))} id="login-errors" />
 
-    <form className="au-form" onSubmit={submit} noValidate>
+    <form ref={form} className="au-form" onSubmit={submit} noValidate>
       <FormField label="Email" required error={errors.account}>
         <Input value={account} onChange={event => { setAccount(event.target.value); setErrors(current => ({ ...current, account: undefined })) }} autoComplete="username" type="email" placeholder={admin ? "admin@addoz.com" : employer ? "you@company.com" : "you@example.com"} />
       </FormField>
@@ -111,7 +125,7 @@ export function LoginForm({ role, redirect }: { role: AuthRole; redirect?: strin
         <AppLink className="text-link au-inline-link" href={admin ? "/auth/forgot-password?role=admin" : employer ? "/auth/forgot-password?role=employer" : "/auth/forgot-password"}>Forgot your password?</AppLink>
       </div>
 
-      <ActionButton type="submit" variant="primary" block loading={status === "submitting"}>Sign in</ActionButton>
+      <ActionButton type="submit" variant="primary" block loading={status === "submitting"} disabled={!ready}>Sign in</ActionButton>
     </form>
 
     <div className="au-links">

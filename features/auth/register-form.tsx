@@ -10,10 +10,12 @@ import { PasswordField } from "./password-field"
 import { PasswordStrengthMeter } from "./password-strength"
 import { ErrorSummary } from "./error-summary"
 import { focusFirstInvalid, isValidEmail, isValidPhone, sanitizeRedirectPath } from "./form-helpers"
+import { useHydrated } from "./use-hydrated"
 
 type Errors = Partial<Record<"firstName" | "lastName" | "username" | "email" | "phone" | "password" | "company" | "accept" | "root", string>>
 
 export function RegisterForm({ redirect }: { redirect?: string }) {
+  const hydrated = useHydrated()
   const router = useRouter()
   const { role, setRole } = useAuthRole()
   const [firstName, setFirstName] = useState("")
@@ -110,7 +112,7 @@ export function RegisterForm({ redirect }: { redirect?: string }) {
         {errors.accept && <p className="field-error" role="alert">{errors.accept}</p>}
       </div>
 
-      <ActionButton type="submit" variant="primary" block loading={status === "submitting"}>Create account</ActionButton>
+      <ActionButton type="submit" variant="primary" block loading={status === "submitting"} disabled={!hydrated}>Create account</ActionButton>
     </form>
 
     <div className="au-links">

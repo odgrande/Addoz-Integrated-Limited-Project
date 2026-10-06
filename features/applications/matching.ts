@@ -116,7 +116,8 @@ export function scoreApplicant(job: MatchJob, applicant: MatchApplicant): MatchR
   const hay = normalize(text)
   const skills = [...new Set((job.skills ?? []).map(skill => skill.trim()).filter(Boolean))]
   const requiredYears = requiredYearsOf(job.experience)
-  const cvRead = (applicant.cvText ?? "").trim().length >= 80 || hay.trim().length >= 200
+  // Only an (almost) empty CV — e.g. a scanned image with no text layer — counts as unreadable
+  const cvRead = (applicant.cvText ?? "").trim().length >= 25 || hay.trim().length >= 200
 
   const credits = skills.map(skill => ({ skill, credit: skillCredit(hay, skill) }))
   const matchedSkills = credits.filter(item => item.credit >= 1).map(item => item.skill)

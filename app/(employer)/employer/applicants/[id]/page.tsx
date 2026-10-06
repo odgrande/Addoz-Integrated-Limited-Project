@@ -57,13 +57,14 @@ export default async function EmployerApplicantPage({ params }: { params: Promis
         <div className="panel-heading">
           <h2><FileText size={18} aria-hidden="true" />{applicant.resumeFileName ?? "CV"}</h2>
           {applicant.resumeUrl && <div className="cluster">
-            <a className="action-button action-ghost action-sm" href={`${applicant.resumeUrl}?view=1`} target="_blank" rel="noreferrer"><ExternalLink size={14} aria-hidden="true" />Open</a>
+            {isPdf && <a className="action-button action-ghost action-sm" href={`${applicant.resumeUrl}?view=1`} target="_blank" rel="noreferrer"><ExternalLink size={14} aria-hidden="true" />Open</a>}
             <a className="action-button action-ghost action-sm" href={applicant.resumeUrl}><Download size={14} aria-hidden="true" />Download</a>
           </div>}
         </div>
         {!applicant.resumeUrl ? <p>No CV was attached to this application.</p>
           : isPdf ? <iframe className="applicant-cv-frame" src={`${applicant.resumeUrl}?view=1`} title={`CV of ${applicant.candidateName}`} />
-          : <p className="field-hint">Word and other documents open in your own app. Use <strong>Download</strong> to read this CV.</p>}
+          : applicant.cvText ? <><p className="field-hint">Text from the CV, for quick reading. Download it to see the original layout.</p><pre className="applicant-cv-text">{applicant.cvText}</pre></>
+          : <p className="field-hint">This document can&apos;t be previewed here. Use <strong>Download</strong> to read it.</p>}
       </section>
     </div>
   </main>

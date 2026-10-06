@@ -134,7 +134,9 @@ export async function getEmployerApplicant(headers: Headers, applicationId: stri
   if (!/^[0-9a-f-]{36}$/i.test(applicationId)) throw new EmployerOwnershipError()
   const [applicant] = await getEmployerApplicants(headers, undefined, "", undefined, [applicationId])
   if (!applicant) throw new EmployerOwnershipError()
-  return applicant
+  // The CV's text (read when they applied) lets employers read Word CVs without downloading
+  const [row] = await db.select({ snapshot: jobApplication.candidateSnapshot }).from(jobApplication).where(eq(jobApplication.id, applicationId)).limit(1)
+  return { ...applicant, cvText: cvTextOf(row?.snapshot ?? null) }
 }
 
 /** Postgres "relation does not exist" — a table added in an update that hasn't been migrated yet. */

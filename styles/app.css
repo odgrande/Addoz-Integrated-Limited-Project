@@ -67,7 +67,7 @@
 .app-nav-link.is-active { background: var(--app-active-bg); color: var(--app-active-fg); font-weight: 800; box-shadow: 3px 3px 0 0 var(--addoz-black); }
 .app-shell[data-app="employer"] .app-nav-link.is-active, .app-shell[data-app="admin"] .app-nav-link.is-active { box-shadow: 3px 3px 0 0 rgba(250,246,235,0.25); }
 .app-nav-link svg { flex-shrink: 0; }
-.app-nav-count { margin-left: auto; min-width: 1.35rem; padding: 0.1rem 0.4rem; border-radius: var(--radius-full); background: var(--addoz-orange); color: var(--addoz-black); font-size: 0.68rem; font-weight: 800; text-align: center; }
+.app-nav-count { margin-left: auto; min-width: 1.35rem; padding: 0.1rem 0.4rem; border-radius: var(--radius-full); background: #d92d20; color: #fff; font-size: 0.68rem; font-weight: 800; text-align: center; }
 .app-nav-out { margin-left: auto; opacity: 0.6; }
 .app-nav-shortcuts { margin-top: auto; }
 .app-shell[data-app="admin"] .app-nav { gap: var(--sp-4); }
@@ -93,7 +93,7 @@
 .app-topbar-end { margin-left: auto; display: flex; align-items: center; gap: var(--sp-3); }
 .app-proto-pill { display: none; padding: 0.35rem 0.7rem; border: 1px dashed var(--addoz-black); border-radius: var(--radius-full); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
 @media (min-width: 640px) { .app-proto-pill { display: inline-flex; } }
-.app-bell-dot { position: absolute; top: 0.35rem; right: 0.35rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--addoz-orange); border: 1px solid var(--addoz-black); }
+.app-bell-dot { position: absolute; top: -0.2rem; right: -0.25rem; min-width: 1.15rem; height: 1.15rem; padding: 0 0.3rem; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-full); background: #d92d20; color: #fff; border: 2px solid var(--addoz-white); font-size: 0.65rem; font-weight: 800; line-height: 1; }
 .app-avatar-top { display: none; }
 @media (min-width: 1024px) { .app-avatar-top { display: inline-flex; } }
 

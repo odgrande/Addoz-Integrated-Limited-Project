@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import { PageTransition } from '@/components/addoz/page-transition'
@@ -25,23 +24,7 @@ const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakart
 export const metadata: Metadata = {
   title: { default: 'ADDOZ — Find your next move', template: '%s | ADDOZ' },
   description: 'Connecting African talent to what’s next. Explore jobs across Nigeria, discover career tools, and find your next great hire with ADDOZ Integrated Resources Limited.',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  // Icons come from app/favicon.ico, app/icon.png and app/apple-icon.png (ADDOZ mark)
 }
 
 export const viewport: Viewport = {
@@ -58,7 +41,6 @@ export default function RootLayout({
     <html lang="en" className={`light ${jakarta.variable}`}>
       <body className="antialiased">
         <PageTransition><ToastProvider>{children}</ToastProvider></PageTransition>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

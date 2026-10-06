@@ -55,7 +55,7 @@ export const listPublicCompanies = cache(async (): Promise<Company[]> => {
     locationName: location.name,
     openRoles: count(job.id),
     // Most common category of the company's live roles, used when no industry is set
-    topCategory: sql<string | null>`(select ${category.name} from ${job} j2 join ${category} on ${category.id} = j2.category_id where j2.company_id = ${company.id} and j2.status = 'Active' group by ${category.name} order by count(*) desc limit 1)`,
+    topCategory: sql<string | null>`(select ${category.name} from ${job} j2 join ${category} on ${category.id} = j2.category_id where j2.company_id = ${company.id} and j2.status = 'Active' and (j2.deadline is null or j2.deadline > now()) group by ${category.name} order by count(*) desc limit 1)`,
   }).from(company)
     .innerJoin(job, activeJobs)
     .leftJoin(location, eq(company.locationId, location.id))

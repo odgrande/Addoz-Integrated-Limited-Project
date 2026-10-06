@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { ArrowUpRight, Bell, LogOut, Menu, X } from "lucide-react"
 import { Logo } from "@/components/addoz/site-header"
 import { LinkModeProvider } from "@/components/patterns/app-link"
@@ -25,16 +25,28 @@ function useActiveHref(items: AppNavItem[]) {
  *  768–1023 top bar + slide-over navigation
  *  <768     top bar + slide-over + bottom tab bar (candidate, employer)
  */
-export function DashboardShell({ app, children, unread = 0, user }: { app: AppId; children: ReactNode; unread?: number; user?: AppConfig["user"] }) {
+export function DashboardShell({ app, children, unread: initialUnread = 0, user }: { app: AppId; children: ReactNode; unread?: number; user?: AppConfig["user"] }) {
   const config = user ? { ...appConfigs[app], user } : appConfigs[app]
   const root = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
-  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [lastPath, setLastPath] = useState(pathname)
   const allItems = config.sections.flatMap(section => section.items)
   const active = useActiveHref(allItems)
   useAppMotion(root, [pathname])
+
+  // Keep the bell's unread badge current without a reload (new messages, broadcasts, application updates)
+  const [unread, setUnread] = useState(initialUnread)
+  useEffect(() => { setUnread(initialUnread) }, [initialUnread])
+  useEffect(() => {
+    let stopped = false
+    const check = () => { if (document.visibilityState === "visible") fetch("/api/notifications/unread", { cache: "no-store" }).then(response => response.ok ? response.json() : null).then(data => { if (!stopped && data && typeof data.unread === "number") setUnread(data.unread) }).catch(() => undefined) }
+    const timer = setInterval(check, 30_000)
+    const seen = () => setUnread(0)
+    window.addEventListener("focus", check)
+    window.addEventListener("addoz:notifications-seen", seen)
+    return () => { stopped = true; clearInterval(timer); window.removeEventListener("focus", check); window.removeEventListener("addoz:notifications-seen", seen) }
+  }, [])
 
   async function handleLogout() {
     const redirectPath = app === "admin"
@@ -45,8 +57,8 @@ export function DashboardShell({ app, children, unread = 0, user }: { app: AppId
     try {
       await signOut({ fetchOptions: { credentials: "include" } })
     } finally {
-      router.push(redirectPath)
-      router.refresh()
+      // Full load so no signed-in screen lingers in the client router cache
+      window.location.assign(redirectPath)
     }
   }
 
@@ -109,7 +121,7 @@ export function DashboardShell({ app, children, unread = 0, user }: { app: AppId
           <Link href={config.home} className="app-topbar-brand" aria-label={`ADDOZ ${config.name} home`}><Logo /><span className="app-badge">{config.name}</span></Link>
           <div className="app-topbar-end">
             <Link href={`${config.home}/${app === "admin" ? "settings" : "notifications"}`} className="app-icon-button app-bell" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
-              <Bell size={18} />{unread > 0 && <span className="app-bell-dot" aria-hidden="true" />}
+              <Bell size={18} />{unread > 0 && <span className="app-bell-dot" aria-hidden="true">{unread > 99 ? "99+" : unread}</span>}
             </Link>
             <span className="app-avatar app-avatar-top" title={config.user.name} aria-hidden="true">{config.user.initials}</span>
           </div>

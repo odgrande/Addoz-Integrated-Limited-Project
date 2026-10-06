@@ -8,6 +8,7 @@ import { roleHref } from "@/components/layout/auth-role"
 import { authClient } from "@/lib/auth-client"
 import { ErrorSummary } from "./error-summary"
 import { focusFirstInvalid, isValidEmail } from "./form-helpers"
+import { useHydrated } from "./use-hydrated"
 
 /**
  * Password reset request. The confirmation is deliberately non-revealing
@@ -15,6 +16,7 @@ import { focusFirstInvalid, isValidEmail } from "./form-helpers"
  * applicants set a password for the account created with their application.
  */
 export function ForgotPasswordForm() {
+  const hydrated = useHydrated()
   const { role } = useAuthRole()
   const [email, setEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +68,7 @@ export function ForgotPasswordForm() {
       <FormField label="Email" required error={error}>
         <Input type="email" value={email} onChange={event => { setEmail(event.target.value); setError(null) }} autoComplete="email" placeholder="you@example.com" />
       </FormField>
-      <ActionButton type="submit" variant="primary" block loading={status === "submitting"}>Send reset link</ActionButton>
+      <ActionButton type="submit" variant="primary" block loading={status === "submitting"} disabled={!hydrated}>Send reset link</ActionButton>
     </form>
 
     <div className="au-links">

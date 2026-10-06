@@ -131,3 +131,10 @@
 .save-applicant { display: inline-flex; flex-direction: column; gap: .2rem; }
 .action-button.is-saved { --btn-fg: var(--addoz-purple); }
 .contact-channels { display: grid; gap: .6rem; margin: 0; padding: 0; border: 0; }
+.stage-select-wrap { display: inline-flex; }
+.employer-company-status strong { font-size: clamp(1.4rem, 1rem + 1.4vw, var(--text-2xl, 2rem)); overflow-wrap: anywhere; }
+.applicant-cv-text { margin: 0; max-height: min(75vh, 56rem); overflow: auto; padding: var(--sp-4); border: var(--border-light); background: var(--addoz-cream, #faf6eb); font-family: inherit; font-size: var(--text-sm); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bulk-select-all { color: var(--addoz-black); }
+.match-band-tab strong { color: var(--addoz-black); }
+.match-band-tab.band-top strong { color: var(--addoz-white); }
+.match-band-tab.is-active.band-all strong { background: var(--addoz-yellow); }

@@ -13,7 +13,14 @@ export const metadata: Metadata = {
 }
 
 export default async function CompaniesPage() {
-  const companies = await listPublicCompanies()
+  const companies = await listPublicCompanies().catch(error => {
+    // A database hiccup during a deploy shouldn't fail the whole build: ship an
+    // empty directory that refreshes within a minute. At runtime the error is
+    // rethrown so the last good page keeps being served instead.
+    if (process.env.NEXT_PHASE !== "phase-production-build") throw error
+    console.error("[companies] directory unavailable during build", error instanceof Error ? error.message : error)
+    return []
+  })
   return <>
     <PageHeader
       eyebrow="COMPANIES"

@@ -16,3 +16,7 @@ node_modules
 
 # Local development uploads (CVs) — never committed
 .data/
+
+# QA test database and temp files
+.qa/
+.tmp-*

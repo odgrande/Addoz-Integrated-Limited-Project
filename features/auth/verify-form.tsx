@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
 import { CircleCheck } from "lucide-react"
 import { ActionButton, AppLink } from "@/components/patterns"
 import { useAuthRole } from "@/components/layout/auth-shell"
@@ -9,6 +8,7 @@ import { roleHref } from "@/components/layout/auth-role"
 import { authClient } from "@/lib/auth-client"
 import { OtpInput } from "./otp-input"
 import { sanitizeRedirectPath } from "./form-helpers"
+import { useHydrated } from "./use-hydrated"
 
 const CODE_LENGTH = 6
 const RESEND_SECONDS = 45
@@ -19,8 +19,8 @@ const RESEND_SECONDS = 45
  * signs the account in.
  */
 export function VerifyForm({ email, redirect }: { email?: string; redirect?: string }) {
+  const hydrated = useHydrated()
   const { role } = useAuthRole()
-  const router = useRouter()
   const [digits, setDigits] = useState<string[]>(() => Array(CODE_LENGTH).fill(""))
   const [status, setStatus] = useState<"editing" | "submitting" | "success">("editing")
   const [error, setError] = useState<string | null>(null)
@@ -53,7 +53,8 @@ export function VerifyForm({ email, redirect }: { email?: string; redirect?: str
     const home = actual === "employer" ? "/employer" : actual === "admin" ? "/admin" : "/candidate"
     const target = sanitizeRedirectPath(redirect, home === "/admin" ? "/admin" : `${home}/dashboard`)
     const allowed = !/^\/(candidate|employer|admin)(\/|$)/.test(target) || target.startsWith(home)
-    setTimeout(() => { router.push(allowed ? target : home === "/admin" ? "/admin" : `${home}/dashboard`); router.refresh() }, 900)
+    // Full load (not router.push + refresh) so the new session is picked up reliably
+    setTimeout(() => { window.location.assign(allowed ? target : home === "/admin" ? "/admin" : `${home}/dashboard`) }, 900)
   }
 
   function onDigitsChange(next: string[]) {
@@ -104,7 +105,7 @@ export function VerifyForm({ email, redirect }: { email?: string; redirect?: str
       <OtpInput length={CODE_LENGTH} values={digits} onChange={onDigitsChange} error={Boolean(error)} disabled={status === "submitting"} label="Verification code" />
       {error && <p className="field-error" role="alert">{error}</p>}
       {notice && <p className="field-hint" role="status">{notice}</p>}
-      <ActionButton type="submit" variant="primary" block loading={status === "submitting"}>Verify email</ActionButton>
+      <ActionButton type="submit" variant="primary" block loading={status === "submitting"} disabled={!hydrated}>Verify email</ActionButton>
     </form>
 
     <div className="au-links">

@@ -10,11 +10,13 @@ import { PasswordField } from "./password-field"
 import { PasswordRequirements, getPasswordStrength } from "./password-strength"
 import { ErrorSummary } from "./error-summary"
 import { focusFirstInvalid } from "./form-helpers"
+import { useHydrated } from "./use-hydrated"
 
 type Errors = { password?: string; confirm?: string; root?: string }
 
 /** Set a new password from the emailed reset link (`?token=`; `?error=INVALID_TOKEN` when expired). */
 export function ResetPasswordForm({ token, linkError }: { token?: string; linkError?: string }) {
+  const hydrated = useHydrated()
   const { role } = useAuthRole()
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -76,7 +78,7 @@ export function ResetPasswordForm({ token, linkError }: { token?: string; linkEr
       <PasswordField label="New password" value={password} onChange={value => { setPassword(value); setErrors(current => ({ ...current, password: undefined })) }} error={errors.password} required />
       <PasswordRequirements password={password} />
       <PasswordField label="Confirm password" value={confirm} onChange={value => { setConfirm(value); setErrors(current => ({ ...current, confirm: undefined })) }} error={errors.confirm} required />
-      <ActionButton type="submit" variant="primary" block loading={status === "submitting"}>Reset password</ActionButton>
+      <ActionButton type="submit" variant="primary" block loading={status === "submitting"} disabled={!hydrated}>Reset password</ActionButton>
     </form>
   </div>
 }

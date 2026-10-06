@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
-import { db } from "./db";
+import { db } from "@/lib/db";
 import { candidateProfile, user } from "./db/schema";
 import { actionEmail, codeEmail, sendEmail } from "./email";
 
@@ -87,6 +87,13 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     sendOnSignIn: true,
     autoSignInAfterVerification: true,
+  },
+  advanced: {
+    // Sign-in rate limits are per visitor IP. Netlify puts the real client IP in
+    // x-nf-client-connection-ip (set by its edge, not by the browser); without it
+    // Better Auth only trusts a single-address x-forwarded-for and otherwise falls
+    // back to ONE shared bucket — limiting sign-ins for every visitor at once.
+    ipAddress: { ipAddressHeaders: ["x-nf-client-connection-ip", "x-forwarded-for"] },
   },
   plugins: [
     emailOTP({

@@ -1,7 +1,7 @@
 import "server-only"
 
 import { and, eq, inArray, isNotNull } from "drizzle-orm"
-import { db } from "./db"
+import { db } from "@/lib/db"
 import { employerProfile, notification, user } from "./db/schema"
 import { actionEmail, sendEmail } from "./email"
 import { siteUrl } from "./site-url"
