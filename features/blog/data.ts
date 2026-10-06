@@ -51,7 +51,7 @@ export const layoutPreview: Post = {
   ],
 }
 
+/** Published articles only — the layout preview is for design review, not a public page. */
 export function getPost(slug: string) {
-  if (slug === layoutPreview.slug) return layoutPreview
   return posts.find(post => post.slug === slug)
 }

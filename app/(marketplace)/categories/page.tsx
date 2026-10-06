@@ -5,6 +5,9 @@ import { featuredCategories } from "@/features/categories/data"
 import { CategoryCard } from "@/features/categories/components/category-card"
 import { CategoryIndex } from "@/features/categories/components/category-index"
 
+// Live counts and companies: rebuilt at most once a minute
+export const revalidate = 60
+
 export const metadata: Metadata = {
   title: "Categories",
   description: "Browse every job category on ADDOZ — six popular starting points, plus the complete A–Z list grouped by field.",

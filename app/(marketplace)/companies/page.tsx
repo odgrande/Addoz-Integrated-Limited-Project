@@ -2,27 +2,32 @@ import type { Metadata } from "next"
 import { ActionButton, PageHeader, SectionHeading } from "@/components/patterns"
 import { BrandShape } from "@/components/brand/brand-shape"
 import { CompaniesBrowser } from "@/features/companies/components/companies-browser"
+import { listPublicCompanies } from "@/features/companies/public-data"
+
+// Live counts and companies: rebuilt at most once a minute
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: "Companies",
-  description: "Meet sample employer profiles across Nigeria's industries and locations — a preview of the ADDOZ company directory.",
+  description: "Companies hiring on ADDOZ across Nigeria — browse employers by industry and location and see their open roles.",
 }
 
-export default function CompaniesPage() {
+export default async function CompaniesPage() {
+  const companies = await listPublicCompanies()
   return <>
     <PageHeader
       eyebrow="COMPANIES"
       title="Companies hiring on ADDOZ"
-      lead="These are sample employer profiles that preview what a company page looks like on ADDOZ. Real employer profiles will appear here as companies join the platform."
+      lead="Employers with open roles on ADDOZ right now. Browse by industry or location and see every role they are hiring for."
     />
-    <CompaniesBrowser />
+    <CompaniesBrowser companies={companies} />
     <section className="page-section tone-yellow dc-employer-cta">
       <BrandShape name="starburst" colour="black" className="dc-cta-shape" />
       <SectionHeading
         eyebrow="FOR EMPLOYERS"
         title="Bring your vacancies to ADDOZ"
         lead="Create a free employer profile and start reaching candidates across Nigeria."
-        action={<ActionButton href="/for-employers" variant="dark" arrow>Create your employer profile</ActionButton>}
+        action={<ActionButton href="/auth/register?role=employer" variant="dark" arrow>Create your employer profile</ActionButton>}
       />
     </section>
   </>

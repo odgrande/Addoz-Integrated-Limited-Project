@@ -44,3 +44,7 @@
 @keyframes admin-shimmer { to { background-position: -220% 0; } }
 @media (prefers-reduced-motion: reduce) { .admin-skeleton { animation: none; } }
 @media (max-width: 767px) { .admin-activity-list li { grid-template-columns: 1fr; gap: .2rem; } .admin-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; } .admin-table tr { padding: var(--sp-4); border-bottom: var(--border-2); } .admin-table tr:last-child { border-bottom: 0; } .admin-table td { display: flex; justify-content: space-between; gap: var(--sp-4); padding: .35rem 0; border: 0; text-align: right; } .admin-table td::before { content: attr(data-label); flex: 0 0 auto; color: var(--addoz-black-40); font-size: var(--text-xs); font-weight: 800; text-align: left; text-transform: uppercase; } .admin-table td.cell-primary { display: block; padding-bottom: .6rem; margin-bottom: .2rem; border-bottom: var(--border-light); text-align: left; } .admin-table td.cell-primary::before { display: none; } .admin-row-actions { justify-content: flex-end; } }
+.admin-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.admin-confirm .input { width: auto; min-width: 9rem; flex: 1 1 9rem; padding-block: 0.4rem; }
+.admin-danger { background: #b42318; border-color: #b42318; color: #fff; }
+.admin-row-actions .field-error { flex-basis: 100%; }

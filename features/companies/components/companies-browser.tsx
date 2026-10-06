@@ -6,7 +6,7 @@ import { SearchX } from "lucide-react"
 import { Flip, gsap, reducedMotion, useGSAP } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 import { ActionButton, EmptyState, FilterBar, SearchBar } from "@/components/patterns"
-import { companies, companyIndustries } from "../data"
+import type { Company } from "../data"
 import { CompanyCard } from "./company-card"
 
 type Filters = { q: string; industry: string; location: string }
@@ -17,7 +17,8 @@ const emptyFilters: Filters = { q: "", industry: "", location: "" }
  * industry chip and a location select, all client-side and instant. The grid reflows
  * with Flip on every change, mirroring the jobs browser's technique.
  */
-export function CompaniesBrowser() {
+export function CompaniesBrowser({ companies }: { companies: Company[] }) {
+  const companyIndustries = [...new Set(companies.map(company => company.industry))].sort()
   const root = useRef<HTMLElement>(null)
   const [filters, setFilters] = useState<Filters>(emptyFilters)
   const [draft, setDraft] = useState("")

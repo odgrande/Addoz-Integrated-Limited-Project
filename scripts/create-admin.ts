@@ -21,7 +21,8 @@ async function main() {
   }
   await db.delete(candidateProfile).where(eq(candidateProfile.userId, userId))
   await db.delete(employerProfile).where(eq(employerProfile.userId, userId))
-  await db.update(user).set({ role: "admin", updatedAt: new Date() }).where(eq(user.id, userId))
+  // Admins are provisioned by the operator, so the address is trusted as verified
+  await db.update(user).set({ role: "admin", emailVerified: true, updatedAt: new Date() }).where(eq(user.id, userId))
   console.log(`Admin provisioned for ${email}`)
 }
 

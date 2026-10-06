@@ -10,7 +10,8 @@
     "start": "next start",
     "db:seed": "tsx lib/db/seed.ts",
     "db:push": "drizzle-kit push",
-    "admin:create": "tsx scripts/create-admin.ts"
+    "admin:create": "tsx scripts/create-admin.ts",
+    "launch:reset": "tsx scripts/reset-launch-data.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1139.0",

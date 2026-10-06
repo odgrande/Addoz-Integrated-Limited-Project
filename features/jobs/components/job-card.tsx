@@ -26,8 +26,8 @@ export function JobCard({ job, flip = true, className }: { job: Job; flip?: bool
   return <article className={cn("job-card", className)} data-flip-id={flip ? `card-${job.slug}` : undefined}>
     <div className="job-card-head">
       <span className={cn("job-mark", `mark-${job.color}`)} data-flip-id={`job-mark-${job.slug}`} aria-hidden="true">{job.mark}</span>
-      <p className="job-card-company"><span>{company?.name ?? "Sample employer"}</span><span>{area?.name} · {job.workplace}</span></p>
-      <SaveJobButton slug={job.slug} title={job.title} />
+      <p className="job-card-company"><span>{job.companyName ?? company?.name ?? "Employer"}</span><span>{[job.locationName ?? area?.name, job.workplace].filter(Boolean).join(" · ")}</span></p>
+      <SaveJobButton slug={job.slug} title={job.title} saved={job.saved} />
     </div>
     <h3 className="job-card-title" data-flip-id={`job-title-${job.slug}`}><Link href={`/jobs/${job.slug}`} className="job-title-link" onClick={open}>{job.title}</Link></h3>
     <p className="job-card-meta">{job.featured && <span className="job-tag-featured">Featured</span>}<span>{job.type}</span><span>{job.level}</span><span>{job.experience}</span></p>
@@ -50,9 +50,9 @@ export function JobRow({ job }: { job: Job }) {
     <span className={cn("job-mark", `mark-${job.color}`)} data-flip-id={`job-mark-${job.slug}`} aria-hidden="true">{job.mark}</span>
     <div className="job-row-main">
       <Link href={`/jobs/${job.slug}`} onClick={open} className="job-row-title"><strong data-flip-id={`job-title-${job.slug}`}>{job.title}</strong></Link>
-      <span className="job-row-meta">{company?.name} · {area?.name} · {job.type} · {job.workplace}</span>
+      <span className="job-row-meta">{[job.companyName ?? company?.name, job.locationName ?? area?.name, job.type, job.workplace].filter(Boolean).join(" · ")}</span>
     </div>
     <span className="job-row-salary tabular">{formatSalaryCompact(job.salary)}</span>
-    <SaveJobButton slug={job.slug} title={job.title} />
+    <SaveJobButton slug={job.slug} title={job.title} saved={job.saved} />
   </li>
 }

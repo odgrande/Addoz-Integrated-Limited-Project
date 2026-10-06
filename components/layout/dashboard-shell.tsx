@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ArrowUpRight, Bell, LogOut, Menu, Search, X } from "lucide-react"
+import { ArrowUpRight, Bell, LogOut, Menu, X } from "lucide-react"
 import { Logo } from "@/components/addoz/site-header"
 import { LinkModeProvider } from "@/components/patterns/app-link"
 import { useAppMotion } from "@/components/motion/app-motion"
@@ -107,13 +107,7 @@ export function DashboardShell({ app, children, unread = 0, user }: { app: AppId
         <header className="app-topbar">
           <button type="button" className="app-icon-button app-menu" onClick={() => setOpen(true)} aria-label="Open navigation" aria-expanded={open}><Menu size={20} /></button>
           <Link href={config.home} className="app-topbar-brand" aria-label={`ADDOZ ${config.name} home`}><Logo /><span className="app-badge">{config.name}</span></Link>
-          {app !== "candidate" && <label className="app-search">
-            <Search size={16} aria-hidden="true" />
-            <span className="sr-only">Search {config.name.toLowerCase()} workspace</span>
-            <input type="search" placeholder={app === "admin" ? "Search jobs, people, companies…" : "Search jobs and applicants…"} />
-          </label>}
           <div className="app-topbar-end">
-            <span className="app-proto-pill">Prototype · sample data</span>
             <Link href={`${config.home}/${app === "admin" ? "settings" : "notifications"}`} className="app-icon-button app-bell" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
               <Bell size={18} />{unread > 0 && <span className="app-bell-dot" aria-hidden="true" />}
             </Link>

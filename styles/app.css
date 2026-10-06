@@ -153,3 +153,41 @@
 .timeline li::before { content: ""; position: absolute; left: calc(-1.1rem - 7px); top: 0.3rem; width: 12px; height: 12px; border-radius: 50%; background: var(--addoz-white); border: 2px solid var(--addoz-black); }
 .timeline li:last-child::before { background: var(--addoz-purple); border-color: var(--addoz-purple); }
 .timeline time { display: block; font-size: var(--text-xs); color: var(--addoz-black-40); }
+
+/* Messages — inbox + thread. Desktop: two panes. Phones: one pane at a time. */
+.msg-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); min-height: 32rem; }
+.msg-list, .msg-thread { background: var(--addoz-white); border: var(--border-2, 2px solid var(--addoz-black)); border-radius: var(--radius-md); min-width: 0; }
+.msg-list { display: flex; flex-direction: column; overflow: hidden; }
+.msg-list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-4); border-bottom: 1px solid rgba(0,0,0,.1); }
+.msg-list ul { list-style: none; margin: 0; padding: 0; overflow-y: auto; max-height: 36rem; }
+.msg-item { position: relative; display: grid; gap: 0.2rem; width: 100%; padding: var(--sp-4); text-align: left; background: none; border: 0; border-bottom: 1px solid rgba(0,0,0,.08); cursor: pointer; font: inherit; color: inherit; }
+.msg-item:hover, .msg-item:focus-visible { background: var(--addoz-cream); }
+.msg-item.is-active { background: rgba(128,12,182,.08); box-shadow: inset 3px 0 0 var(--addoz-purple); }
+.msg-item-top { display: flex; justify-content: space-between; gap: var(--sp-2); }
+.msg-item-top strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-item-top time { flex-shrink: 0; font-size: var(--text-xs); color: var(--addoz-black-60); }
+.msg-item-subject { font-size: var(--text-sm); font-weight: 600; }
+.msg-item-preview { font-size: var(--text-sm); color: var(--addoz-black-60); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-item.is-unread .msg-item-subject { color: var(--addoz-purple); }
+.msg-dot { position: absolute; top: 1.15rem; right: 0.6rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--addoz-purple); }
+.msg-thread { display: none; flex-direction: column; overflow: hidden; }
+.msg-workspace.has-thread .msg-list { display: none; }
+.msg-workspace.has-thread .msg-thread { display: flex; }
+.msg-thread-head { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-4); border-bottom: 1px solid rgba(0,0,0,.1); }
+.msg-thread-head h2 { margin: 0; font-size: var(--text-lg, 1.15rem); overflow-wrap: anywhere; }
+.msg-messages { flex: 1; display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-4); overflow-y: auto; max-height: 30rem; background: var(--addoz-cream); }
+.msg-bubble { max-width: min(36rem, 88%); padding: var(--sp-3) var(--sp-4); background: var(--addoz-white); border: 1px solid rgba(0,0,0,.12); border-radius: var(--radius-md); align-self: flex-start; }
+.msg-bubble.is-mine { align-self: flex-end; background: rgba(128,12,182,.08); border-color: rgba(128,12,182,.3); }
+.msg-meta { margin: 0 0 0.25rem; font-size: var(--text-xs); color: var(--addoz-black-60); }
+.msg-body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+.msg-compose { display: grid; gap: var(--sp-2); padding: var(--sp-4); border-top: 1px solid rgba(0,0,0,.1); }
+.msg-compose .action-button { justify-self: end; }
+.msg-readonly { margin: 0; padding: var(--sp-4); font-size: var(--text-sm); color: var(--addoz-black-60); border-top: 1px solid rgba(0,0,0,.1); }
+.msg-empty, .msg-empty-inline { display: grid; justify-items: center; gap: var(--sp-2); padding: var(--sp-8, 2rem) var(--sp-4); text-align: center; color: var(--addoz-black-60); }
+.msg-empty-inline { padding: var(--sp-4); }
+@media (min-width: 900px) {
+  .msg-workspace { grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr); }
+  .msg-workspace .msg-list, .msg-workspace.has-thread .msg-list { display: flex; }
+  .msg-workspace .msg-thread { display: flex; }
+  .msg-back { display: none; }
+}

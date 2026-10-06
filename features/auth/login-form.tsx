@@ -5,18 +5,11 @@ import { ActionButton, AppLink, Checkbox, FormField, Input } from "@/components/
 import type { AuthRole } from "@/components/layout/auth-role"
 import { PasswordField } from "./password-field"
 import { ErrorSummary } from "./error-summary"
-import { focusFirstInvalid } from "./form-helpers"
+import { focusFirstInvalid, sanitizeRedirectPath } from "./form-helpers"
 import { getSession, signIn, signOut } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 
 type Errors = { account?: string; password?: string; root?: string }
-
-function sanitizeRedirectPath(value: string | undefined, fallback: string) {
-  if (!value) return fallback
-  if (value.startsWith("//") || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) return fallback
-  if (!value.startsWith("/")) return fallback
-  return value
-}
 
 function roleMismatchMessage(expected: AuthRole, actual: string | undefined) {
   if (expected === "admin") {
@@ -84,6 +77,13 @@ export function LoginForm({ role, redirect }: { role: AuthRole; redirect?: strin
         router.refresh()
       },
       onError: (ctx) => {
+        if (ctx.error.code === "EMAIL_NOT_VERIFIED") {
+          // A fresh code was emailed with this sign-in attempt
+          const params = new URLSearchParams({ email: account.trim(), redirect: destination })
+          if (role !== "candidate") params.set("role", role)
+          router.push(`/auth/verify?${params.toString()}`)
+          return
+        }
         setStatus("editing")
         setErrors({ root: ctx.error.message || "Failed to sign in. Please check your credentials." })
         top.current?.scrollIntoView({ behavior: "smooth", block: "start" })

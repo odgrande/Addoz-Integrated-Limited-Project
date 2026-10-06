@@ -152,7 +152,7 @@ export function CoverLetterTool() {
           </ScreenFade>
         </Panel>
 
-        <AiNotConnected label="AI-enhanced draft — not connected in this preview" sections={tool.report} />
+        <AiNotConnected label="AI-enhanced draft — coming soon" sections={tool.report} />
       </div>
     </div>
   )

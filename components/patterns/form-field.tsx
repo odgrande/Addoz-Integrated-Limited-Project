@@ -113,7 +113,7 @@ export function FileDrop({ accept, label = "Drop a file here, or browse", hint, 
     <input ref={input} id={id} type="file" accept={accept} className="sr-only" onChange={event => choose(event.target.files?.[0] ?? null)} />
     {file ? <div className="file-chosen">
       <UploadCloud size={22} aria-hidden="true" />
-      <span><strong>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024))} KB · stays on this device in the prototype</small></span>
+      <span><strong>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024))} KB · ready to upload</small></span>
       <button type="button" className="file-clear" onClick={() => { choose(null); if (input.current) input.current.value = "" }} aria-label="Remove file"><X size={16} /></button>
     </div> : <button type="button" className="file-drop-button" onClick={() => input.current?.click()}>
       <UploadCloud size={26} aria-hidden="true" />

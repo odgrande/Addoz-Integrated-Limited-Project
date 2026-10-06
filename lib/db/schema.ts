@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { pgTable, pgEnum, text, integer, timestamp, boolean, uuid, primaryKey, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 export const userRole = pgEnum('user_role', ['candidate', 'employer', 'admin']);
@@ -137,7 +138,9 @@ export const job = pgTable("job", {
   responsibilities: text("responsibilities").array(),
   requirements: text("requirements").array(),
   skills: text("skills").array(),
-  status: text("status").default('Active'), // Active, Draft, Paused, Closed
+  status: text("status").default('Active'), // Draft, Pending (awaiting admin review), Active, Paused, Closed, Declined, Archived
+  approvedAt: timestamp("approved_at"), // set when an admin approves; approved jobs can be re-published without review
+  moderationNote: text("moderation_note"), // reason shown to the employer when a job is declined
   views: integer("views").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -183,6 +186,9 @@ export const jobApplication = pgTable("job_application", {
 }, (table) => [
   uniqueIndex("job_application_candidate_job_unique").on(table.candidateId, table.jobId),
   uniqueIndex("job_application_reference_unique").on(table.applicationReference),
+  // One guest application per email per job (registered candidates are covered above)
+  uniqueIndex("job_application_guest_job_unique").on(table.jobId, sql`lower(${table.guestEmail})`).where(sql`${table.candidateId} is null`),
+  index("job_application_job_idx").on(table.jobId),
 ]);
 
 export const savedJob = pgTable("saved_job", {
@@ -226,5 +232,65 @@ export const auditLog = pgTable("audit_log", {
   entityType: text("entity_type").notNull(),
   entityId: text("entity_id"),
   metadata: text("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const newsletterSubscriber = pgTable("newsletter_subscriber", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull(),
+  source: text("source"), // footer, blog
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  unsubscribedAt: timestamp("unsubscribed_at"),
+}, (table) => [uniqueIndex("newsletter_subscriber_email_unique").on(table.email)]); // stored lowercased
+
+export const contactMessage = pgTable("contact_message", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  topic: text("topic").notNull(),
+  message: text("message").notNull(),
+  handled: boolean("handled").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [index("contact_message_created_at_idx").on(table.createdAt)]);
+
+// --- MESSAGING ---
+// "application": the hiring company's employers ↔ the candidate who applied.
+// "support": ADDOZ admins ↔ one candidate or employer (`userId`).
+export const conversation = pgTable("conversation", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  kind: text("kind").notNull(), // application, support
+  applicationId: uuid("application_id").references(() => jobApplication.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+  subject: text("subject").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("conversation_application_unique").on(table.applicationId),
+  index("conversation_user_idx").on(table.userId),
+  index("conversation_last_message_idx").on(table.lastMessageAt),
+]);
+
+export const message = pgTable("message", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  conversationId: uuid("conversation_id").references(() => conversation.id, { onDelete: "cascade" }).notNull(),
+  senderUserId: text("sender_user_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [index("message_conversation_created_idx").on(table.conversationId, table.createdAt)]);
+
+export const conversationRead = pgTable("conversation_read", {
+  conversationId: uuid("conversation_id").references(() => conversation.id, { onDelete: "cascade" }).notNull(),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
+}, (table) => [primaryKey({ columns: [table.conversationId, table.userId] })]);
+
+// Private file bytes (CVs) when no object store (R2) is configured.
+// Stored base64-encoded; files are capped at 4 MB.
+export const storedFile = pgTable("stored_file", {
+  key: text("key").primaryKey(),
+  contentType: text("content_type").notNull(),
+  size: integer("size").notNull(),
+  data: text("data").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

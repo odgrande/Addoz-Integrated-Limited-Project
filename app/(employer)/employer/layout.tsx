@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { getEmployerNotifications, getEmployerContext } from "@/features/employers/queries"
 
 export const metadata: Metadata = {
-  title: { template: "%s · Employer | ADDOZ", default: "Employer workspace | ADDOZ" },
+  title: { template: "%s · Employer | ADDOZ", default: "Employer workspace" },
   robots: { index: false, follow: false },
 }
 

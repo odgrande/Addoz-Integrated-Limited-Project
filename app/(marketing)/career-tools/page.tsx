@@ -40,7 +40,7 @@ export default function CareerToolsPage() {
           <div className="ci-flow-step">
             <p className="ci-flow-num tabular">02</p>
             <h3>Add what you&apos;re working with</h3>
-            <p>Paste your CV, describe the role, or tell us about yourself in your own words. Nothing leaves your browser in this preview.</p>
+            <p>Paste your CV, describe the role, or tell us about yourself in your own words. The instant checks run in your browser — nothing is uploaded.</p>
           </div>
           <div className="ci-flow-step">
             <p className="ci-flow-num tabular">03</p>
@@ -74,7 +74,7 @@ export default function CareerToolsPage() {
       </section>
 
       <section className="page-section tone-white tight">
-        <PrototypeNote title="AI analysis isn't connected in this preview">On the live ADDOZ platform, you log in to use the AI Career Tools — what you see here is the real interface and instant checks, ready for that connection.</PrototypeNote>
+        <PrototypeNote title="AI analysis is coming soon">The instant checks in each tool work today. Personalised AI analysis of your CV, cover letters and interview answers is being added next — subscribe below to hear when it launches.</PrototypeNote>
       </section>
 
       <section className="page-section tone-cream-dark ci-shape-host">

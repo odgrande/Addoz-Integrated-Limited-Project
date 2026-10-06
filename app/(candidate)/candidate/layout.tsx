@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { getCandidateOverview } from "@/features/candidates/queries"
 
 export const metadata: Metadata = {
-  title: { template: "%s · Candidate | ADDOZ", default: "Candidate workspace | ADDOZ" },
+  title: { template: "%s · Candidate | ADDOZ", default: "Candidate workspace" },
   robots: { index: false, follow: false },
 }
 

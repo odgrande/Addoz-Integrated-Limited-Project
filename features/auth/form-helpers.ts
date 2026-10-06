@@ -23,3 +23,11 @@ export function formatSavedAt(iso: string): string {
   if (Number.isNaN(date.getTime())) return ""
   return date.toLocaleString("en-NG", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })
 }
+
+/** Only same-site relative paths are followed after sign-in or registration. */
+export function sanitizeRedirectPath(value: string | undefined, fallback: string) {
+  if (!value || !value.startsWith("/")) return fallback
+  // "//host", "/\host" and embedded schemes would leave the site
+  if (value.startsWith("//") || value.includes("\\") || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) return fallback
+  return value
+}

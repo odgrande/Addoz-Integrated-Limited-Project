@@ -6,13 +6,13 @@ import { ArrowLeft } from "lucide-react"
 
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  retry: () => void
 }) {
   useEffect(() => {
-    // Log to monitoring service in production (Sentry etc.)
+    // Server errors arrive here with only a digest; match it against the server logs.
     console.error(error)
   }, [error])
 
@@ -28,7 +28,8 @@ export default function GlobalError({
         Something went wrong loading this page. Try again, or head back to ADDOZ.
       </p>
       <div className="cluster">
-        <button onClick={reset} className="action-button action-dark">
+        {/* retry() re-fetches the server segment; reset() would only re-render the failed tree */}
+        <button onClick={() => retry()} className="action-button action-dark">
           Try again
         </button>
         <Link href="/" className="action-button action-light">
@@ -36,6 +37,7 @@ export default function GlobalError({
           Back to ADDOZ
         </Link>
       </div>
+      {error.digest && <p className="status-page-lead" style={{ fontSize: "0.8rem", opacity: 0.6 }}>Error reference: {error.digest}</p>}
     </main>
   )
 }

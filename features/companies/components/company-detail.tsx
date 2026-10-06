@@ -1,9 +1,9 @@
 import { ActionButton, Breadcrumbs, EmptyState, Reveal, SampleTag, SectionHeading } from "@/components/patterns"
 import { plural } from "@/lib/format"
 import { getArea, getState } from "@/features/locations/data"
-import { jobsAtCompany } from "@/features/jobs/data"
+import type { Job } from "@/features/jobs/data"
 import { JobRow } from "@/features/jobs/components/job-card"
-import { companies, type Company } from "../data"
+import type { Company } from "../data"
 import { CompanyCard } from "./company-card"
 
 /**
@@ -11,11 +11,11 @@ import { CompanyCard } from "./company-card"
  * overview, open roles and a facts aside, then related companies. Fully static —
  * no filters here, so this stays a server component.
  */
-export function CompanyDetail({ company }: { company: Company }) {
+export function CompanyDetail({ company, roles, related }: { company: Company; roles: Job[]; related: Company[] }) {
   const area = getArea(company.location)
   const state = area ? getState(area.state) : undefined
-  const roles = jobsAtCompany(company.slug)
-  const related = companies.filter(other => other.slug !== company.slug && (other.industry === company.industry || other.location === company.location)).slice(0, 3)
+  const locationName = company.locationName ?? area?.name
+  const place = [locationName, state ? `${state.name} State` : null].filter(Boolean).join(", ")
 
   return <article>
     <header className="page-section dc-company-hero">
@@ -24,10 +24,10 @@ export function CompanyDetail({ company }: { company: Company }) {
         <span className={`company-mark tone-${company.tone} is-large`} aria-hidden="true">{company.mark}</span>
         <div className="dc-company-hero-id">
           <h1 className="t-h1" data-reveal>{company.name}</h1>
-          <p className="dc-company-hero-meta">{company.industry} · {area?.name}{state ? `, ${state.name} State` : ""}</p>
+          <p className="dc-company-hero-meta">{[company.industry, place].filter(Boolean).join(" · ")}</p>
         </div>
       </div>
-      <p className="dc-company-hero-foot"><span className="dc-company-hero-size">{company.size}</span><SampleTag>Sample employer</SampleTag></p>
+      <p className="dc-company-hero-foot"><span className="dc-company-hero-size">{company.size}</span>{company.sample && <SampleTag>Sample employer</SampleTag>}</p>
     </header>
 
     <section className="page-section dc-company-body">
@@ -40,7 +40,7 @@ export function CompanyDetail({ company }: { company: Company }) {
           <h2 id="open-roles" className="t-h3">Open roles</h2>
           {roles.length > 0
             ? <ul className="job-list">{roles.map(job => <JobRow key={job.slug} job={job} />)}</ul>
-            : <EmptyState title="No open roles right now" body="Sample roles for this employer will appear here as they're added." />}
+            : <EmptyState title="No open roles right now" body="New roles from this employer will appear here." />}
         </section>
       </div>
 
@@ -49,11 +49,12 @@ export function CompanyDetail({ company }: { company: Company }) {
           <h2 className="t-label">Company details</h2>
           <dl className="dc-fact-list">
             <div><dt>Industry</dt><dd>{company.industry}</dd></div>
-            <div><dt>Location</dt><dd>{area?.name}{state ? `, ${state.name}` : ""}</dd></div>
+            <div><dt>Location</dt><dd>{place || "Not shared"}</dd></div>
+            {company.website && <div><dt>Website</dt><dd><a className="text-link" href={company.website} target="_blank" rel="noopener noreferrer nofollow">{company.website.replace(/^https?:\/\//, "")}</a></dd></div>}
             <div><dt>Company size</dt><dd>{company.size}</dd></div>
             <div><dt>Open roles</dt><dd>{plural(roles.length, "open role")}</dd></div>
           </dl>
-          <p className="dc-fact-note"><SampleTag>Sample employer profile</SampleTag> Preview only — not a verified ADDOZ employer yet.</p>
+          {company.sample && <p className="dc-fact-note"><SampleTag>Sample employer profile</SampleTag> Preview only — not a verified ADDOZ employer yet.</p>}
         </div>
       </aside>
     </section>

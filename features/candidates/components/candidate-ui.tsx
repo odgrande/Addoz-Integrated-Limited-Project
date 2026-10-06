@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
-import { Bookmark, Check, FileText, LoaderCircle, Trash2, UploadCloud } from "lucide-react"
+import { Bookmark, FileText, LoaderCircle, Trash2, UploadCloud } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { gsap, reducedMotion } from "@/lib/motion"
-import { useSession } from "@/lib/auth-client"
 
-const MAX_RESUME_BYTES = 10 * 1024 * 1024
+const MAX_RESUME_BYTES = 4 * 1024 * 1024
 const ACCEPTED_RESUME_TYPES = [
   "application/pdf",
   "application/msword",
@@ -63,186 +62,10 @@ export function CandidateSaveButton({ jobSlug, jobId, title, initialSaved = fals
       router.refresh()
     } catch (error) {
       setSaved(before)
-      if (error instanceof Error && error.message === "Authentication required.") window.location.href = "/auth/login?next=/candidate/saved-jobs"
+      if (error instanceof Error && error.message === "Authentication required.") window.location.href = "/auth/login?role=candidate&redirect=/candidate/saved-jobs"
     } finally { setBusy(false) }
   }
   return <button type="button" className={`candidate-save ${saved ? "is-saved" : ""}`} aria-pressed={saved} aria-label={saved ? `Remove ${title} from saved jobs` : `Save ${title}`} onClick={toggle} disabled={busy}><Bookmark size={18} fill={saved ? "currentColor" : "none"} aria-hidden="true" /><span>{saved ? "Saved" : "Save"}</span></button>
-}
-
-export function CandidateApplyButton({ jobSlug, applied = false, jobTitle = "this role", companyName = "this employer" }: { jobSlug: string; applied?: boolean; jobTitle?: string; companyName?: string }) {
-  const [status, setStatus] = useState<"idle" | "busy" | "done" | "error">(applied ? "done" : "idle")
-  const [modalOpen, setModalOpen] = useState(false)
-  const [flow, setFlow] = useState<"choice" | "form" | "review" | "done" | null>(null)
-  const [error, setError] = useState("")
-  const [busy, setBusy] = useState(false)
-  const [draft, setDraft] = useState({ name: "", email: "", phone: "", coverLetter: "" })
-  const router = useRouter()
-  const { data: session } = useSession()
-
-  useEffect(() => { setStatus(applied ? "done" : "idle") }, [applied])
-
-  useEffect(() => {
-    if (!session?.user || session.user.role !== "candidate") return
-    setDraft({
-      name: session.user.name ?? "",
-      email: session.user.email ?? "",
-      phone: "",
-      coverLetter: "",
-    })
-  }, [session])
-
-  function openCandidateFlow() {
-    setModalOpen(true)
-    setFlow("form")
-    setError("")
-    if (session?.user?.role === "candidate") {
-      setDraft({
-        name: session.user.name ?? "",
-        email: session.user.email ?? "",
-        phone: "",
-        coverLetter: "",
-      })
-    }
-  }
-
-  async function submitApplication(payload: { name: string; email: string; phone: string; coverLetter: string }) {
-    setBusy(true)
-    setError("")
-    try {
-      const response = await fetch(`/api/jobs/${jobSlug}/apply`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        if (response.status === 409 && typeof data.error === "string" && /sign in|already exists|candidate account/i.test(data.error)) {
-          setError("An ADDOZ account already exists for this email. Please sign in to continue.")
-          setFlow("form")
-          return
-        }
-        throw new Error(data.error || "Unable to submit application.")
-      }
-      setStatus("done")
-      setFlow("done")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to submit application.")
-      setFlow("form")
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  function validateApplication(values: typeof draft) {
-    if (values.name.trim().length < 2) return "Enter your full name."
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) return "Enter a valid email address."
-    if (values.phone.trim() && values.phone.replace(/\D/g, "").length < 10) return "Enter a valid phone number."
-    return ""
-  }
-
-  async function apply() {
-    if (!session?.user) {
-      setModalOpen(true)
-      setFlow("choice")
-      setError("")
-      return
-    }
-
-    if (session.user.role !== "candidate") {
-      window.location.href = `/auth/login?role=candidate&redirect=/jobs/${jobSlug}`
-      return
-    }
-
-    openCandidateFlow()
-  }
-
-  function continueAsGuest() {
-    setModalOpen(true)
-    setFlow("form")
-    setError("")
-    setDraft({ name: "", email: "", phone: "", coverLetter: "" })
-  }
-
-  function reviewSubmission() {
-    const message = validateApplication(draft)
-    if (message) {
-      setError(message)
-      return
-    }
-    setError("")
-    setFlow("review")
-  }
-
-  async function finalSubmit() {
-    await submitApplication(draft)
-  }
-
-  if (status === "done") return <span className="candidate-status success"><Check size={16} aria-hidden="true" />Applied</span>
-
-  return <>
-    <button type="button" className="action-button action-primary" onClick={apply} disabled={status === "busy"}>{status === "busy" ? "Applying..." : status === "error" ? "Try again" : "Apply now"}</button>
-    {modalOpen && <div role="dialog" aria-modal="true" style={{ position: "fixed", inset: 0, background: "rgba(13, 17, 25, 0.45)", display: "grid", placeItems: "center", zIndex: 50, padding: 16 }}>
-      <div style={{ width: "min(100%, 560px)", background: "#fff", borderRadius: 18, padding: 24, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-        {flow === "choice" && <>
-          <h3 style={{ margin: 0, fontSize: 28 }}>Continue your application</h3>
-          <p style={{ margin: "12px 0 20px", color: "#4d4d4d" }}>Choose how you want to apply for {jobTitle} at {companyName}.</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <button type="button" className="action-button action-primary" onClick={continueAsGuest}>Continue as guest</button>
-            <button type="button" className="action-button action-ghost" onClick={() => window.location.href = `/auth/login?role=candidate&redirect=/jobs/${jobSlug}`}>Sign in as candidate</button>
-            <button type="button" className="action-button action-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
-          </div>
-        </>}
-
-        {flow === "form" && <form onSubmit={(event) => { event.preventDefault(); reviewSubmission() }} style={{ display: "grid", gap: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 28 }}>{session?.user?.role === "candidate" ? "Review your application" : "Guest application"}</h3>
-          <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Full name</label>
-            <input value={draft.name} onChange={(event) => setDraft(current => ({ ...current, name: event.target.value }))} type="text" autoComplete="name" style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d5d5d5" }} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Email</label>
-            <input value={draft.email} onChange={(event) => setDraft(current => ({ ...current, email: event.target.value }))} type="email" autoComplete="email" style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d5d5d5" }} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Phone</label>
-            <input value={draft.phone} onChange={(event) => setDraft(current => ({ ...current, phone: event.target.value }))} type="tel" autoComplete="tel" placeholder="+234" style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d5d5d5" }} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Cover note</label>
-            <textarea value={draft.coverLetter} onChange={(event) => setDraft(current => ({ ...current, coverLetter: event.target.value }))} rows={4} style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #d5d5d5", resize: "vertical" }} placeholder="Tell the hiring team why you are interested in this role." />
-          </div>
-          {error && <p role="alert" style={{ margin: 0, color: "#b42318", fontSize: 14 }}>{error}</p>}
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button type="button" className="action-button action-ghost" onClick={() => { setFlow("choice"); setError("") }}>Back</button>
-            <button type="submit" className="action-button action-primary" disabled={busy}>{busy ? "Preparing..." : "Review application"}</button>
-          </div>
-        </form>}
-
-        {flow === "review" && <div style={{ display: "grid", gap: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 28 }}>Review before submitting</h3>
-          <div style={{ display: "grid", gap: 10, padding: 16, border: "1px solid #e2e8f0", borderRadius: 12 }}>
-            <div><strong>Full name</strong><div>{draft.name}</div></div>
-            <div><strong>Email</strong><div>{draft.email}</div></div>
-            <div><strong>Phone</strong><div>{draft.phone || "Not provided"}</div></div>
-            <div><strong>Cover note</strong><div>{draft.coverLetter || "No cover note added."}</div></div>
-          </div>
-          {error && <p role="alert" style={{ margin: 0, color: "#b42318", fontSize: 14 }}>{error}</p>}
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button type="button" className="action-button action-ghost" onClick={() => { setFlow("form"); setError("") }}>Edit</button>
-            <button type="button" className="action-button action-primary" onClick={finalSubmit} disabled={busy}>{busy ? "Submitting..." : "Submit application"}</button>
-          </div>
-        </div>}
-
-        {flow === "done" && <>
-          <h3 style={{ margin: 0, fontSize: 28 }}>Application submitted</h3>
-          <p style={{ margin: "12px 0 20px" }}><strong>{jobTitle}</strong> at {companyName} was submitted successfully on {new Date().toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}. Your status is <strong>Applied</strong>.</p>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button type="button" className="action-button action-primary" onClick={() => { setModalOpen(false); router.refresh() }}>Done</button>
-          </div>
-        </>}
-      </div>
-    </div>}
-  </>
 }
 
 export function ProfileForm({ initial }: { initial: { name: string; headline: string | null; experience: string | null; locationId: string | null; locations: { id: string; name: string }[] } }) {
@@ -298,7 +121,7 @@ export function ResumeForm({ initial, storageConfigured }: { initial: { id?: str
     }
     if (file.size > MAX_RESUME_BYTES) {
       setStatus("error")
-      setMessage("Resume files must be 10 MB or smaller.")
+      setMessage("Resume files must be 4 MB or smaller.")
       return
     }
 
@@ -351,7 +174,7 @@ export function ResumeForm({ initial, storageConfigured }: { initial: { id?: str
 
   return <form className="app-form" onSubmit={submit}>
     <div className="resume-upload-mark"><FileText size={28} aria-hidden="true" /><span>{initial ? "Resume on file" : "No resume added yet"}</span></div>
-    {!storageConfigured && <p className="form-message" role="status">Resume storage is not configured. Set the R2 environment variables to enable live uploads.</p>}
+    {!storageConfigured && <p className="form-message" role="status">Resume uploads are temporarily unavailable. Please try again later.</p>}
     <label className="field">
       <span className="field-label">Upload resume</span>
       <input className="input" name="resume" type="file" accept=".pdf,.doc,.docx,.rtf,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf,text/plain" disabled={busy || !storageConfigured} onChange={event => setSelectedFileName(event.target.files?.[0]?.name ?? initial?.fileName ?? "")} />

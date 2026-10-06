@@ -8,9 +8,10 @@ export const metadata: Metadata = {
   description: "Choose a new password for your ADDOZ account.",
 }
 
-type SearchParams = Promise<{ role?: string }>
+type SearchParams = Promise<{ role?: string; token?: string; error?: string }>
 
 export default async function ResetPasswordPage({ searchParams }: { searchParams: SearchParams }) {
-  const role = parseAuthRole((await searchParams).role)
-  return <AuthShell key={role} role={role}><ResetPasswordForm /></AuthShell>
+  const params = await searchParams
+  const role = parseAuthRole(params.role)
+  return <AuthShell key={role} role={role}><ResetPasswordForm token={params.token} linkError={params.error} /></AuthShell>
 }

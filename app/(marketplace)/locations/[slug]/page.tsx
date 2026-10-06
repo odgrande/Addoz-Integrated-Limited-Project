@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const area = getArea(slug)
   if (!area) return { title: "Location not found" }
   const state = getState(area.state)
-  return { title: `Jobs in ${area.name}`, description: `Browse sample roles in ${area.name}${state ? `, ${state.name} State` : ""} on ADDOZ.` }
+  return { title: `Jobs in ${area.name}`, description: `Browse open roles in ${area.name}${state ? `, ${state.name} State` : ""} on ADDOZ.` }
 }
 
 export default async function LocationPage({ params }: { params: Params }) {

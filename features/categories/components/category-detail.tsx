@@ -71,7 +71,7 @@ export function CategoryDetail({ category, jobs }: { category: Category; jobs: J
       </div>
 
       <FilterBar
-        count={<><strong className="tabular">{visible.length}</strong> {visible.length === 1 ? "sample role" : "sample roles"}</>}
+        count={<><strong className="tabular">{visible.length}</strong> {visible.length === 1 ? "role" : "roles"}</>}
         sort={{ value: filters.sort, options: sortOptions, onChange: value => apply({ sort: value as SortId }) }}
       >
         <AppLink href={`/jobs?category=${category.slug}`} className="text-link">Open in job search</AppLink>
@@ -79,7 +79,7 @@ export function CategoryDetail({ category, jobs }: { category: Category; jobs: J
 
       {visible.length > 0
         ? <div className="job-grid">{visible.map(job => <JobCard key={job.slug} job={job} />)}</div>
-        : <EmptyState icon={<SearchX size={24} strokeWidth={1.8} />} title={`No sample roles in ${category.name} yet`} body="New sample roles are added over time. In the meantime, try these:" action={<><ActionButton href="/jobs" variant="dark">Browse all jobs</ActionButton><ActionButton href="/auth/register" variant="ghost">Set up a job alert</ActionButton></>} />}
+        : <EmptyState icon={<SearchX size={24} strokeWidth={1.8} />} title={`No open roles in ${category.name} yet`} body="New roles are added every day. In the meantime, browse all roles or set up a job alert." action={<><ActionButton href="/jobs" variant="dark">Browse all jobs</ActionButton><ActionButton href="/auth/register" variant="ghost">Set up a job alert</ActionButton></>} />}
     </section>
 
     {related.length > 0 && <section className="page-section tone-cream-dark">

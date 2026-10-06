@@ -64,8 +64,8 @@ const groups: Group[] = [
       },
       {
         id: "login-required",
-        question: "Do I need an account to use the AI tools?",
-        answer: <p>Yes — the AI Career Tools ask you to log in before use. In this preview their pages show the interface only; the AI responses themselves aren’t connected yet.</p>,
+        question: "Do I need an account to use the career tools?",
+        answer: <p>No — the instant checks in each Career Intelligence tool work without an account. Personalised AI analysis is coming soon and will be available to signed-in members.</p>,
       },
     ],
   },

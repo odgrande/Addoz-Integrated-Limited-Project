@@ -5,7 +5,7 @@ import { Panel } from "@/components/patterns"
  * AI-tailored report will contain: the real section names from the tool's data,
  * laid out as empty rows — never fabricated output.
  */
-export function AiNotConnected({ label, sections, note = "AI analysis isn't connected in this preview; on the live platform you log in to use the tools." }: {
+export function AiNotConnected({ label, sections, note = "Personalised AI analysis is coming soon. The instant checks above work today." }: {
   label: string
   sections: string[]
   note?: string

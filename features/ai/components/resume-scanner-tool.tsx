@@ -64,7 +64,7 @@ export function ResumeScannerTool() {
       reader.onload = () => { if (typeof reader.result === "string") setCvText(reader.result) }
       reader.readAsText(file)
     } else {
-      setFileNote("Text paste works best in the preview — this file type isn't read here. Paste the text instead.")
+      setFileNote("Only .txt files can be read here for now — paste the text of your CV instead.")
     }
   }
 
@@ -84,10 +84,10 @@ export function ResumeScannerTool() {
   return (
     <div className="ci-workspace">
       <div className="ci-workspace-inputs">
-        <FormField label="Your CV" hint="Paste the text of your CV — nothing leaves your browser in this preview." error={cvError} required>
+        <FormField label="Your CV" hint="Paste the text of your CV — the instant check runs in your browser and nothing is uploaded." error={cvError} required>
           <Textarea rows={12} value={cvText} onChange={event => setCvText(event.target.value)} placeholder="Paste your CV text here…" />
         </FormField>
-        <FileDrop accept=".txt" label="Or drop a .txt file" hint={fileNote ?? "Only .txt is read in this preview"} onFile={handleFile} />
+        <FileDrop accept=".txt" label="Or drop a .txt file" hint={fileNote ?? "Only .txt files are read for now"} onFile={handleFile} />
         <FormField label="Job description" optional hint="Paste one in to see keyword overlap too.">
           <Textarea rows={6} value={jobText} onChange={event => setJobText(event.target.value)} placeholder="Paste the job description here…" />
         </FormField>
@@ -147,7 +147,7 @@ export function ResumeScannerTool() {
           </ScreenFade>
         </Panel>
 
-        <AiNotConnected label="AI analysis — not connected in this preview" sections={tool.report} />
+        <AiNotConnected label="AI analysis — coming soon" sections={tool.report} />
       </div>
     </div>
   )

@@ -90,6 +90,6 @@ export function CareerIntelligence() {
         </div>
       </Link>)}
     </div>
-    <p className="tools-note">AI analysis isn’t connected in this preview. Your documents stay in your browser.</p>
+    <p className="tools-note">Instant checks work today — personalised AI analysis is coming soon. Your documents stay in your browser.</p>
   </section>
 }

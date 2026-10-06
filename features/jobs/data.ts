@@ -42,6 +42,9 @@ export type Job = {
   category: string       // category name
   location: string       // area slug
   company: string        // company slug
+  /** Display names resolved from the database (static sample jobs fall back to lookups). */
+  companyName?: string
+  locationName?: string
   type: JobType
   workplace: Workplace
   level: CareerLevel
@@ -59,6 +62,8 @@ export type Job = {
   skills: string[]
   sample: boolean
   applied?: boolean
+  /** Saved by the signed-in candidate; undefined when unknown (static pages). */
+  saved?: boolean
 }
 
 type Seed = Omit<Job, "sample" | "deadline"> & { deadline?: string }

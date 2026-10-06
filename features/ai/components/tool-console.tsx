@@ -90,7 +90,7 @@ export function ToolConsole() {
       </div>
 
       <div className="ci-stage-foot">
-        <p className="ci-stage-note">Illustrative product preview — try it for real below.</p>
+        <p className="ci-stage-note">A quick look at the tool — try it for real below.</p>
         <ActionButton href={`/career-tools/${tool.slug}`} variant="primary" arrow>{tool.cta}</ActionButton>
       </div>
     </div>

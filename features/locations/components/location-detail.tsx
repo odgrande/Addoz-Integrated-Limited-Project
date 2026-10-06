@@ -56,7 +56,7 @@ export function LocationDetail({ area, jobs }: { area: Area; jobs: Job[] }) {
       crumbs={[{ label: "Jobs", href: "/jobs" }, { label: "Locations", href: "/locations" }, { label: area.name }]}
       eyebrow={areaState ? `${areaState.name} STATE` : undefined}
       title={area.name}
-      lead={`Sample roles based in ${area.name}${areaState ? `, ${areaState.name} State` : ""}.`}
+      lead={`Open roles based in ${area.name}${areaState ? `, ${areaState.name} State` : ""}.`}
     />
 
     <section className="page-section" id="results" ref={root}>
@@ -70,7 +70,7 @@ export function LocationDetail({ area, jobs }: { area: Area; jobs: Job[] }) {
       </div>
 
       <FilterBar
-        count={<><strong className="tabular">{visible.length}</strong> {visible.length === 1 ? "sample role" : "sample roles"}</>}
+        count={<><strong className="tabular">{visible.length}</strong> {visible.length === 1 ? "role" : "roles"}</>}
         sort={{ value: filters.sort, options: sortOptions, onChange: value => apply({ sort: value as SortId }) }}
       >
         <AppLink href={`/jobs?location=${area.slug}`} className="text-link">Search all roles in {area.name}</AppLink>
@@ -78,7 +78,7 @@ export function LocationDetail({ area, jobs }: { area: Area; jobs: Job[] }) {
 
       {visible.length > 0
         ? <div className="job-grid">{visible.map(job => <JobCard key={job.slug} job={job} />)}</div>
-        : <EmptyState icon={<SearchX size={24} strokeWidth={1.8} />} title={`No sample roles in ${area.name} yet`} body="Try a nearby area, or search all roles on ADDOZ." action={<ActionButton href="/jobs" variant="dark">Browse all jobs</ActionButton>} />}
+        : <EmptyState icon={<SearchX size={24} strokeWidth={1.8} />} title={`No open roles in ${area.name} yet`} body="Try a nearby area, or search all roles on ADDOZ." action={<ActionButton href="/jobs" variant="dark">Browse all jobs</ActionButton>} />}
     </section>
 
     {categoriesHere.length > 0 && <section className="page-section tone-cream-dark">

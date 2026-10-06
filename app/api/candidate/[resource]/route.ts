@@ -2,7 +2,7 @@ import { and, desc, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { candidateProfile, category, company, job, jobAlert, jobApplication, location, notification, resume, savedJob, user } from "@/lib/db/schema"
 import { CandidateAuthError, requireCandidate } from "@/features/candidates/queries"
-import { deleteResumeFromStorage, getResumeStorageErrorMessage, isResumeStorageConfigured, uploadResumeToStorage } from "@/lib/storage/r2"
+import { MAX_RESUME_FILE_SIZE, deleteResumeFromStorage, getResumeStorageErrorMessage, isResumeStorageConfigured, uploadResumeToStorage } from "@/lib/storage/r2"
 
 function unauthorized() {
   return Response.json({ error: "Authentication required." }, { status: 401 })
@@ -67,25 +67,10 @@ export async function POST(request: Request, context: { params: Promise<{ resour
 
     if (resource === "resume") {
       if (!isResumeStorageConfigured()) return Response.json({ error: getResumeStorageErrorMessage() }, { status: 503 })
-      const contentType = request.headers.get("content-type") ?? ""
-      if (!contentType.includes("multipart/form-data")) {
-        const body = await request.json().catch(() => null) as Record<string, unknown> | null
-        if (!body) return badRequest()
-        const fileName = typeof body.fileName === "string" ? body.fileName.trim() : ""
-        const url = typeof body.url === "string" ? body.url.trim() : ""
-        if (!fileName || !url) return badRequest("Add a file name and secure file URL.")
-        await db.delete(resume).where(eq(resume.candidateId, profile.id))
-        const [created] = await db.insert(resume).values({
-          candidateId: profile.id,
-          fileName,
-          fileSize: typeof body.fileSize === "string" ? body.fileSize.trim() : null,
-          url,
-          storageKey: typeof body.storageKey === "string" ? body.storageKey.trim() : null,
-          mimeType: typeof body.mimeType === "string" ? body.mimeType.trim() : null,
-          status: "active",
-        }).returning()
-        return Response.json(created)
-      }
+      // Uploads are multipart only. Resume records are never created from a
+      // client-supplied URL or storage key: that would let one candidate point a
+      // record at another candidate's file and download or delete it.
+      if (!(request.headers.get("content-type") ?? "").includes("multipart/form-data")) return badRequest("Upload the resume file directly.")
 
       const formData = await request.formData()
       const file = formData.get("resume")
@@ -100,7 +85,7 @@ export async function POST(request: Request, context: { params: Promise<{ resour
       const hasAllowedExtension = /\.(pdf|doc|docx|rtf|txt)$/i.test(file.name)
       if (!isAllowedType && !hasAllowedExtension) return badRequest("Upload a PDF, DOC, DOCX, RTF, or TXT resume.")
       if (file.size <= 0) return badRequest("The resume file is empty.")
-      if (file.size > Number(process.env.R2_MAX_FILE_SIZE ?? 10 * 1024 * 1024)) return badRequest("Resume files must be 10 MB or smaller.")
+      if (file.size > MAX_RESUME_FILE_SIZE) return badRequest("Resume files must be 4 MB or smaller.")
 
       const existing = await db.select().from(resume).where(eq(resume.candidateId, profile.id)).orderBy(desc(resume.uploadedAt)).limit(1)
       const [current] = existing
@@ -122,24 +107,6 @@ export async function POST(request: Request, context: { params: Promise<{ resour
     const body = await request.json().catch(() => null) as Record<string, unknown> | null
     if (!body) return badRequest()
 
-    if (resource === "applications") {
-      const slug = typeof body.jobSlug === "string" ? body.jobSlug : ""
-      const [target] = await db.select({ id: job.id }).from(job).where(and(eq(job.slug, slug), eq(job.status, "Active"))).limit(1)
-      if (!target) return Response.json({ error: "That role is no longer available." }, { status: 404 })
-      try {
-        const [application] = await db.insert(jobApplication).values({ jobId: target.id, candidateId: profile.id }).returning()
-        return Response.json(application, { status: 201 })
-      } catch (error) {
-        const databaseError = error as { code?: string; cause?: { code?: string; cause?: { code?: string }; message?: string }; message?: string }
-        const errorCode = databaseError?.code ?? databaseError?.cause?.code ?? databaseError?.cause?.cause?.code
-        const errorMessage = `${databaseError?.message ?? ""} ${databaseError?.cause?.message ?? ""}`
-        if (errorCode === "23505" || /job_application_candidate_job_unique|duplicate key/i.test(errorMessage)) {
-          return Response.json({ error: "You have already applied to this role." }, { status: 409 })
-        }
-        console.error("Candidate application failed", error)
-        return Response.json({ error: "Unable to submit this application." }, { status: 500 })
-      }
-    }
     if (resource === "saved-jobs") {
       const slug = typeof body.jobSlug === "string" ? body.jobSlug : ""
       const [target] = await db.select({ id: job.id }).from(job).where(eq(job.slug, slug)).limit(1)

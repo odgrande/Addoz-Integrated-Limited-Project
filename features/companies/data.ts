@@ -14,11 +14,15 @@ export type Company = {
   name: string
   industry: string        // category name (features/categories)
   location: string        // area slug (features/locations)
+  locationName?: string
   mark: string
   tone: "purple" | "yellow" | "orange" | "black"
   size: string
   overview: string
-  sample: true
+  website?: string
+  /** Live roles (database directory); static sample profiles count from sample jobs. */
+  openRoles?: number
+  sample: boolean
 }
 
 const overview = (field: string) =>

@@ -8,16 +8,25 @@ import { gsap, useGSAP, reducedMotion } from "@/lib/motion"
 import { site } from "@/lib/site"
 import { footerNav } from "@/components/layout/site-nav"
 
-/** The quiet close: one line, one field. Prototype — nothing is stored or sent. */
+/** The quiet close: one line, one field — subscribes the address to ADDOZ job updates. */
 export function Newsletter() {
   const [submitted, setSubmitted] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
   const root = useRef<HTMLElement>(null)
   const { contextSafe } = useGSAP(() => {}, { scope: root })
-  const submit = contextSafe((event: FormEvent<HTMLFormElement>) => {
+  const reveal = contextSafe(() => { if (!reducedMotion()) gsap.fromTo(".newsletter-status", { y: 6, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35 }) })
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSubmitted(true)
-    if (!reducedMotion()) gsap.fromTo(".newsletter-status", { y: 6, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35 })
-  })
+    const email = String(new FormData(event.currentTarget).get("email") ?? "").trim()
+    setBusy(true)
+    setFailed(false)
+    const response = await fetch("/api/newsletter", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, source: "footer" }) }).catch(() => null)
+    setBusy(false)
+    if (response?.ok) setSubmitted(true)
+    else setFailed(true)
+    reveal()
+  }
   return <section id="newsletter" ref={root} className="newsletter section-pad" aria-labelledby="newsletter-title">
     <div className="newsletter-copy">
       <p className="eyebrow"><Asterisk size={14} strokeWidth={2.5} aria-hidden="true" /> Right opportunities. Right to your inbox.</p>
@@ -27,10 +36,10 @@ export function Newsletter() {
       <p>A little less searching. Get updated with the best new jobs on ADDOZ.</p>
       <form className="newsletter-form" onSubmit={submit}>
         <label htmlFor="newsletter-email" className="sr-only">Email address for job updates</label>
-        <input id="newsletter-email" name="email" type="email" required placeholder="Your email address" autoComplete="email" disabled={submitted} />
-        <button type="submit" className="action-button action-primary" disabled={submitted}>Keep me posted <ArrowRight size={17} aria-hidden="true" /></button>
+        <input id="newsletter-email" name="email" type="email" required placeholder="Your email address" autoComplete="email" disabled={submitted || busy} />
+        <button type="submit" className="action-button action-primary" disabled={submitted || busy}>Keep me posted <ArrowRight size={17} aria-hidden="true" /></button>
       </form>
-      <p className="newsletter-status" role="status">{submitted ? "Thanks — this preview doesn’t store or send emails." : "Prototype form — no emails are collected or sent."}</p>
+      <p className="newsletter-status" role="status">{submitted ? "Thanks — you’re on the list for new job updates." : failed ? "We couldn’t subscribe that address just now. Please try again." : "New roles, now and then. Unsubscribe any time."}</p>
       {submitted && <button type="button" className="text-link" onClick={() => setSubmitted(false)}>Try another address</button>}
     </div>
   </section>

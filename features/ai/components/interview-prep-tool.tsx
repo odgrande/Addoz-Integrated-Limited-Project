@@ -176,7 +176,7 @@ export function InterviewPrepTool() {
           </ScreenFade>
         </Panel>
 
-        <AiNotConnected label="AI-tailored questions — not connected in this preview" sections={tool.report} />
+        <AiNotConnected label="AI-tailored questions — coming soon" sections={tool.report} />
       </div>
     </div>
   )

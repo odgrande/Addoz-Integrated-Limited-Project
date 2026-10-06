@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
+import { hasPasswordLogin } from "@/features/applications/server"
 import { isAPIError } from "better-auth/api"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
@@ -28,6 +29,17 @@ export async function POST(request: Request) {
 
   const { email, password, name, role, companyName } = parsed.data
   try {
+    // Guest applicants already have a passwordless account for their email.
+    // It is claimed through the emailed password link (proof of ownership),
+    // never by registering over it.
+    const [existing] = await db.select({ id: user.id }).from(user).where(eq(sql`lower(${user.email})`, email.toLowerCase())).limit(1)
+    if (existing) {
+      if (!(await hasPasswordLogin(existing.id))) {
+        return Response.json({ error: "You've applied on ADDOZ with this email before. Use \"Forgot password\" to set a password and open your account.", code: "GUEST_ACCOUNT" }, { status: 409 })
+      }
+      return Response.json({ error: "An account with this email already exists." }, { status: 409 })
+    }
+
     const result = await auth.api.signUpEmail({
       returnHeaders: true,
       body: { email, password, name },
@@ -42,7 +54,8 @@ export async function POST(request: Request) {
       await db.insert(employerProfile).values({ userId: result.response.user.id, companyId: createdCompany.id, contactName: name })
     }
 
-    const response = Response.json({ ok: true }, { status: 201 })
+    // No session yet: the account activates once the emailed code is verified
+    const response = Response.json({ ok: true, verify: true }, { status: 201 })
     for (const cookie of result.headers.getSetCookie()) response.headers.append("set-cookie", cookie)
     return response
   } catch (error) {

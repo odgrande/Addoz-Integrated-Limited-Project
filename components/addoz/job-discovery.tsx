@@ -6,9 +6,8 @@ import Link from "next/link"
 import { ArrowUpRight, Bookmark } from "lucide-react"
 import { Flip, gsap, reducedMotion, useGSAP } from "@/lib/motion"
 import { cn } from "@/lib/utils"
-import { jobs, type Job } from "@/features/jobs/data"
+import type { Job } from "@/features/jobs/data"
 import { JobCard } from "@/features/jobs/components/job-card"
-import { useSavedJobs } from "@/features/jobs/saved-jobs"
 import { ScrambleLabel } from "./scramble-label"
 
 const tabs: { id: string; label: string; noun: string; test?: (job: Job) => boolean }[] = [
@@ -24,16 +23,17 @@ const LIMIT = 6
  * The opportunity board: a calm preview of the jobs browser. Tabs reflow the grid
  * with Flip; everything else (search, filters, paging) lives on /jobs.
  */
-export function JobDiscovery() {
+export function JobDiscovery({ jobs }: { jobs: Job[] }) {
   const root = useRef<HTMLElement>(null)
   const [tab, setTab] = useState("all")
-  const { saved } = useSavedJobs()
   const active = tabs.find(item => item.id === tab)!
+  // Live roles from the marketplace; "Saved" reflects the signed-in candidate's saved jobs
   const matching = useMemo(() => {
-    if (tab === "saved") return jobs.filter(job => saved.includes(job.slug))
+    if (tab === "saved") return jobs.filter(job => job.saved)
     return active.test ? jobs.filter(active.test) : jobs
-  }, [tab, saved, active])
+  }, [tab, active, jobs])
   const visible = matching.slice(0, LIMIT)
+  const savedCount = jobs.filter(job => job.saved).length
 
   const { contextSafe } = useGSAP(() => {
     const mm = gsap.matchMedia()
@@ -72,23 +72,23 @@ export function JobDiscovery() {
     <div className="board-toolbar">
       <div className="board-tabs" role="group" aria-label="Show roles">
         {tabs.map(item => <button key={item.id} type="button" className={cn("board-tab", tab === item.id && "is-active")} aria-pressed={tab === item.id} onClick={() => change(item.id)}>
-          {item.label}{item.id === "saved" && saved.length > 0 && <span className="board-tab-count">{saved.length}</span>}
+          {item.label}{item.id === "saved" && savedCount > 0 && <span className="board-tab-count">{savedCount}</span>}
         </button>)}
       </div>
-      <p className="board-count" aria-live="polite"><strong className="tabular">{visible.length}</strong> of {matching.length} {active.noun}<span className="sample-tag">Sample</span></p>
+      <p className="board-count" aria-live="polite"><strong className="tabular">{visible.length}</strong> of {matching.length} {active.noun}</p>
     </div>
 
     {visible.length > 0
       ? <div className="job-grid board-grid">{visible.map(job => <JobCard key={job.slug} job={job} />)}</div>
       : <div className="board-empty">
           <Bookmark size={22} aria-hidden="true" />
-          <h3>Nothing saved yet.</h3>
-          <p>Tap the bookmark on any role to keep it here — saved roles stay on this device.</p>
+          <h3>{tab === "saved" ? "Nothing saved yet." : "No roles here yet."}</h3>
+          <p>{tab === "saved" ? "Sign in as a candidate and tap the bookmark on any role to keep it here." : "Check back soon, or browse every live role."}</p>
           <button type="button" className="action-button action-light action-sm" onClick={() => change("all")}>Show all roles</button>
         </div>}
 
     <div className="board-foot">
-      <p>Sample roles for this preview — not live vacancies.</p>
+      <p>{jobs.length ? "The newest roles on ADDOZ." : "New roles are added every day — check back soon."}</p>
       <Link href="/jobs" className="action-button action-dark">Browse all jobs <ArrowUpRight size={17} aria-hidden="true" /></Link>
     </div>
   </section>

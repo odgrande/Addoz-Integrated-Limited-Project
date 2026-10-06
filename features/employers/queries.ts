@@ -3,7 +3,7 @@ import "server-only"
 import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { category, candidateProfile, company, job, jobApplication, location, notification, resume, user, employerProfile } from "@/lib/db/schema"
+import { category, candidateProfile, company, job, jobApplication, location, notification, user, employerProfile } from "@/lib/db/schema"
 
 import { employerStages } from "@/features/employers/stages"
 
@@ -47,6 +47,7 @@ export async function getEmployerJobs(headers: Headers, search = "") {
     slug: job.slug,
     title: job.title,
     status: job.status,
+    moderationNote: job.moderationNote,
     type: job.type,
     workplace: job.workplace,
     deadline: job.deadline,
@@ -84,22 +85,23 @@ export async function getEmployerApplicants(headers: Headers, jobId?: string, se
     jobId: job.id,
     jobTitle: job.title,
     candidateName: sql<string>`COALESCE(${user.name}, ${jobApplication.guestName}, 'Guest applicant')`,
-    candidateEmail: sql<string>`COALESCE(${user.email}, ${jobApplication.guestEmail})`,
+    candidateEmail: sql<string>`COALESCE(${jobApplication.guestEmail}, ${user.email})`,
+    candidatePhone: jobApplication.guestPhone,
     headline: candidateProfile.headline,
     experience: candidateProfile.experience,
     locationName: location.name,
     stage: jobApplication.stage,
     appliedAt: jobApplication.appliedAt,
     coverLetter: jobApplication.coverLetter,
-    resumeFileName: resume.fileName,
-    resumeFileSize: resume.fileSize,
-    resumeUrl: resume.url,
+    // Each application keeps its own CV copy; it is served by an ownership-checked route
+    resumeFileName: jobApplication.cvFileName,
+    resumeFileSize: jobApplication.cvFileSize,
+    resumeUrl: sql<string | null>`CASE WHEN ${jobApplication.cvStorageKey} IS NOT NULL THEN '/api/employer/applications/' || ${jobApplication.id} || '/cv' END`,
   }).from(jobApplication)
     .innerJoin(job, eq(jobApplication.jobId, job.id))
     .leftJoin(candidateProfile, eq(jobApplication.candidateId, candidateProfile.id))
     .leftJoin(user, eq(candidateProfile.userId, user.id))
     .leftJoin(location, eq(candidateProfile.locationId, location.id))
-    .leftJoin(resume, eq(jobApplication.resumeId, resume.id))
     .where(and(...filters))
     .orderBy(desc(jobApplication.appliedAt))
 }

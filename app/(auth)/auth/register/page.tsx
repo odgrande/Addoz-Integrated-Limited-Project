@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/layout/auth-shell"
 import { parseAuthRole } from "@/components/layout/auth-role"
 import { RegisterForm } from "@/features/auth/register-form"
 
-type SearchParams = Promise<{ role?: string }>
+type SearchParams = Promise<{ role?: string; redirect?: string }>
 
 export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
   const { role } = await searchParams
@@ -17,7 +17,8 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
 }
 
 export default async function RegisterPage({ searchParams }: { searchParams: SearchParams }) {
-  const role = parseAuthRole((await searchParams).role)
+  const params = await searchParams
+  const role = parseAuthRole(params.role)
   // The form's Candidate/Employer toggle switches the shell variant live via useAuthRole()
-  return <AuthShell key={role} role={role}><RegisterForm /></AuthShell>
+  return <AuthShell key={role} role={role}><RegisterForm redirect={params.redirect} /></AuthShell>
 }

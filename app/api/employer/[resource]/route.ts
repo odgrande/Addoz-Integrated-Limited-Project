@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "@/lib/db"
+import { adminUserIds, notify } from "@/lib/notify"
 import { company, employerProfile, job, notification, user } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicants, requireEmployer } from "@/features/employers/queries"
 
@@ -60,7 +61,9 @@ export async function GET(request: Request, context: { params: Promise<{ resourc
     if (resource === "settings") return Response.json({ name: session.user.name, email: session.user.email })
     return Response.json({ error: "Unknown employer resource." }, { status: 400 })
   } catch (error) {
-    return authError(error) ?? Response.json({ error: "Unable to load employer data." }, { status: 500 })
+    const handled = authError(error); if (handled) return handled
+    console.error("[employer] request failed", error)
+    return Response.json({ error: "Unable to load employer data." }, { status: 500 })
   }
 }
 
@@ -95,14 +98,19 @@ export async function POST(request: Request, context: { params: Promise<{ resour
         responsibilities: parsed.data.responsibilities,
         requirements: parsed.data.requirements,
         skills: parsed.data.skills,
-        status: parsed.data.status,
-        postedAt: parsed.data.status === "Active" ? new Date() : undefined,
-      }).returning({ id: job.id, slug: job.slug })
+        // New jobs are reviewed by ADDOZ before they go live
+        status: parsed.data.status === "Active" ? "Pending" : parsed.data.status,
+      }).returning({ id: job.id, slug: job.slug, status: job.status })
+      if (created?.status === "Pending") {
+        await notify({ userIds: await adminUserIds(), kind: "account", title: `Job awaiting review: ${parsed.data.title}`, body: `${parsed.data.title} was submitted for review.`, href: "/admin/jobs?status=Pending", email: { subject: `Review needed — ${parsed.data.title}`, actionLabel: "Review jobs" } })
+      }
       return Response.json(created, { status: 201 })
     }
     return Response.json({ error: "Unknown employer resource." }, { status: 400 })
   } catch (error) {
-    return authError(error) ?? Response.json({ error: "Unable to save employer data." }, { status: 500 })
+    const handled = authError(error); if (handled) return handled
+    console.error("[employer] request failed", error)
+    return Response.json({ error: "Unable to save employer data." }, { status: 500 })
   }
 }
 
@@ -126,7 +134,9 @@ export async function PUT(request: Request, context: { params: Promise<{ resourc
     }
     return Response.json({ error: "Unknown employer resource." }, { status: 400 })
   } catch (error) {
-    return authError(error) ?? Response.json({ error: "Unable to update employer data." }, { status: 500 })
+    const handled = authError(error); if (handled) return handled
+    console.error("[employer] request failed", error)
+    return Response.json({ error: "Unable to update employer data." }, { status: 500 })
   }
 }
 
@@ -146,6 +156,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ resou
     }
     return Response.json({ error: "Enter valid details." }, { status: 400 })
   } catch (error) {
-    return authError(error) ?? Response.json({ error: "Unable to update employer data." }, { status: 500 })
+    const handled = authError(error); if (handled) return handled
+    console.error("[employer] request failed", error)
+    return Response.json({ error: "Unable to update employer data." }, { status: 500 })
   }
 }

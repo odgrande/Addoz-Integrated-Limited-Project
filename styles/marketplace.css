@@ -301,3 +301,9 @@
 .apply-done { display: grid; justify-items: start; gap: var(--sp-4); }
 .apply-done > svg { color: var(--addoz-purple); }
 .apply-done p { line-height: 1.6; color: var(--addoz-black-80); }
+.apply-review { display: grid; gap: var(--sp-3); margin: 0; padding: var(--sp-4); border: 1px solid var(--addoz-black-10, rgba(0,0,0,.1)); border-radius: var(--radius-md, 12px); }
+.apply-review dt { font-size: var(--type-micro); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--addoz-black-60); }
+.apply-review dd { margin: 0.15rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.apply-cv-choice { display: grid; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.apply-cv-choice small { color: var(--addoz-black-60); font-weight: 500; }
+.job-preview-banner { margin: 0 0 var(--sp-4); padding: var(--sp-3) var(--sp-4); border: 2px solid var(--addoz-black); border-radius: var(--radius-md, 12px); background: var(--addoz-yellow); font-size: var(--text-sm); }

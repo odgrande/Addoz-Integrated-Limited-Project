@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { Bell, BookOpen, BriefcaseBusiness, Building2, ChartColumn, FileText, FolderKanban, Gauge, Heart, LayoutGrid, Mail, MapPin, MessageSquareQuote, PenSquare, Settings, Sparkles, UserRound, Users, UsersRound, BellRing, ClipboardList, Tags, ShieldCheck } from "lucide-react"
+import { Bell, BookOpen, BriefcaseBusiness, Building2, ChartColumn, FileText, FolderKanban, Gauge, Heart, LayoutGrid, Mail, MapPin, MessageSquare, MessageSquareQuote, PenSquare, Settings, Sparkles, UserRound, Users, UsersRound, BellRing, ClipboardList, Tags, ShieldCheck } from "lucide-react"
 
 /**
  * Application navigation for the three workspaces. `tabs` are the items that sit
@@ -22,11 +22,12 @@ export type AppConfig = {
 export const appConfigs: Record<AppId, AppConfig> = {
   candidate: {
     id: "candidate", name: "Candidate", home: "/candidate/dashboard",
-    user: { name: "Guest Candidate", role: "Prototype candidate", initials: "GC" },
+    user: { name: "Candidate", role: "Candidate", initials: "C" },
     sections: [
       { items: [
         { label: "Overview", href: "/candidate/dashboard", icon: Gauge, exact: true },
         { label: "Applications", href: "/candidate/applications", icon: ClipboardList },
+        { label: "Messages", href: "/candidate/messages", icon: MessageSquare },
         { label: "Saved jobs", href: "/candidate/saved-jobs", icon: Heart },
         { label: "Job alerts", href: "/candidate/job-alerts", icon: BellRing },
       ] },
@@ -45,13 +46,14 @@ export const appConfigs: Record<AppId, AppConfig> = {
   },
   employer: {
     id: "employer", name: "Employer", home: "/employer/dashboard",
-    user: { name: "Hiring Manager", role: "Sample Tech Employer", initials: "HM" },
+    user: { name: "Employer", role: "Employer", initials: "E" },
     sections: [
       { items: [
         { label: "Overview", href: "/employer/dashboard", icon: Gauge, exact: true },
         { label: "Jobs", href: "/employer/jobs", icon: BriefcaseBusiness },
         { label: "Post a job", href: "/employer/jobs/new", icon: PenSquare, exact: true },
         { label: "Applicants", href: "/employer/applicants", icon: UsersRound },
+        { label: "Messages", href: "/employer/messages", icon: MessageSquare },
         { label: "Analytics", href: "/employer/analytics", icon: ChartColumn },
       ] },
       { title: "Company", items: [
@@ -68,7 +70,7 @@ export const appConfigs: Record<AppId, AppConfig> = {
   },
   admin: {
     id: "admin", name: "Admin", home: "/admin",
-    user: { name: "ADDOZ Admin", role: "Prototype administrator", initials: "AA" },
+    user: { name: "Administrator", role: "Administrator", initials: "A" },
     sections: [
       { items: [{ label: "Overview", href: "/admin", icon: Gauge, exact: true }] },
       { title: "Marketplace", items: [
@@ -82,6 +84,7 @@ export const appConfigs: Record<AppId, AppConfig> = {
         { label: "Users", href: "/admin/users", icon: Users },
         { label: "Candidates", href: "/admin/candidates", icon: UserRound },
         { label: "Employers", href: "/admin/employers", icon: FolderKanban },
+        { label: "Messages", href: "/admin/messages", icon: MessageSquare },
       ] },
       { title: "Content", items: [
         { label: "Blog", href: "/admin/blog", icon: BookOpen },

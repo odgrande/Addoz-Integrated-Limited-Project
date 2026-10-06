@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 import { db } from "@/lib/db"
+import { adminUserIds, notify } from "@/lib/notify"
 import { job } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicants, getEmployerJob, requireEmployer } from "@/features/employers/queries"
 
@@ -48,8 +49,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const parsed = jobUpdateSchema.safeParse(body)
     if (!parsed.success) return Response.json({ error: "Enter valid job details.", fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     const data = parsed.data
-    await db.update(job).set({ ...data, deadline: data.deadline === undefined ? undefined : data.deadline ? new Date(data.deadline) : null, postedAt: data.status === "Active" && existing.job.status !== "Active" ? new Date() : undefined, updatedAt: new Date() }).where(and(eq(job.id, id), eq(job.companyId, profile.companyId!)))
-    return Response.json({ ok: true })
+    // Publishing a job ADDOZ hasn't approved yet (new or declined) sends it for review;
+    // approved jobs can be paused and re-published freely.
+    const status = data.status === "Active" && !existing.job.approvedAt ? "Pending" : data.status
+    const goingLive = status === "Active" && existing.job.status !== "Active"
+    await db.update(job).set({ ...data, status, moderationNote: status === "Pending" ? null : undefined, deadline: data.deadline === undefined ? undefined : data.deadline ? new Date(data.deadline) : null, postedAt: goingLive ? new Date() : undefined, updatedAt: new Date() }).where(and(eq(job.id, id), eq(job.companyId, profile.companyId!)))
+    if (status === "Pending" && existing.job.status !== "Pending") {
+      await notify({ userIds: await adminUserIds(), kind: "account", title: `Job awaiting review: ${data.title ?? existing.job.title}`, body: `${data.title ?? existing.job.title} was submitted for review.`, href: "/admin/jobs?status=Pending", email: { subject: `Review needed — ${data.title ?? existing.job.title}`, actionLabel: "Review jobs" } })
+    }
+    return Response.json({ ok: true, status })
   } catch (error) {
     return errorResponse(error) ?? Response.json({ error: "Unable to update this job." }, { status: 500 })
   }

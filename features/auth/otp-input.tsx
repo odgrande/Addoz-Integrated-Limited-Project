@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils"
 /**
  * Six-digit verification code input: one box per digit, arrow-key and
  * backspace navigation, and paste support (pasting a full code fills every
- * box from the current one). Digits only exist in this browser tab — nothing
- * is sent anywhere to check them.
+ * box from the current one).
  */
 export function OtpInput({ length = 6, values, onChange, error, disabled, label }: {
   length?: number

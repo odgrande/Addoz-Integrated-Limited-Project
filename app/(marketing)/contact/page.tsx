@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 const routes = [
-  { href: "/jobs", icon: Briefcase, title: "Job seekers", body: "Search live and sample roles across Nigeria." },
+  { href: "/jobs", icon: Briefcase, title: "Job seekers", body: "Search live roles across Nigeria." },
   { href: "/for-employers", icon: Building2, title: "Employers", body: "See how posting a job on ADDOZ works." },
   { href: "/faq", icon: LifeBuoy, title: "Questions", body: "Common questions, answered in one place." },
 ]

@@ -1,8 +1,37 @@
 import "server-only"
 
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { promises as fs } from "node:fs"
+import path from "node:path"
+import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { eq } from "drizzle-orm"
+import { db } from "@/lib/db"
+import { storedFile } from "@/lib/db/schema"
 
-export const MAX_RESUME_FILE_SIZE = Number(process.env.R2_MAX_FILE_SIZE ?? 10 * 1024 * 1024)
+/**
+ * File storage for CVs and application files.
+ *
+ * Driver selection:
+ * - Cloudflare R2 when the R2_* variables are set (recommended at scale).
+ * - Otherwise the database (`stored_file` table) in production — free, no
+ *   extra service, fine for launch volumes (Neon free tier: 0.5 GB).
+ * - Local disk under `.data/uploads` in development (STORAGE_DRIVER=db to use
+ *   the database locally too).
+ *
+ * Files are private. They are only served through authenticated route handlers
+ * that check ownership; storage URLs are never handed to the browser.
+ */
+
+// 4 MB: Vercel functions accept request bodies up to ~4.5 MB, and CVs are rarely over 1 MB
+export const MAX_RESUME_FILE_SIZE = Math.min(Number(process.env.R2_MAX_FILE_SIZE ?? 4 * 1024 * 1024), 4 * 1024 * 1024)
+
+export const ACCEPTED_CV_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/rtf",
+  "text/plain",
+]
+const ACCEPTED_CV_EXTENSIONS = /\.(pdf|doc|docx|rtf|txt)$/i
 
 export type ResumeStorageConfig = {
   accountId: string
@@ -15,6 +44,16 @@ export type ResumeStorageConfig = {
   ready: boolean
 }
 
+type StoredFile = { body: Uint8Array; contentType: string; contentLength: number }
+
+type StorageDriver = {
+  name: "r2" | "local" | "database"
+  put(key: string, file: File | Blob, contentType: string, metadata: Record<string, string>): Promise<void>
+  get(key: string): Promise<StoredFile>
+  remove(key: string): Promise<void>
+  copy(fromKey: string, toKey: string): Promise<void>
+}
+
 export function getResumeStorageConfig(): ResumeStorageConfig | null {
   const accountId = process.env.R2_ACCOUNT_ID?.trim()
   const bucket = process.env.R2_BUCKET?.trim()
@@ -24,134 +63,164 @@ export function getResumeStorageConfig(): ResumeStorageConfig | null {
 
   const endpoint = process.env.R2_ENDPOINT_URL?.trim() || `https://${accountId}.r2.cloudflarestorage.com`
   const publicUrl = process.env.R2_PUBLIC_URL?.trim() || `${endpoint.replace(/\/$/, "")}/${bucket}`
+  return { accountId, bucket, endpoint, publicUrl, accessKeyId, secretAccessKey, maxFileSize: MAX_RESUME_FILE_SIZE, ready: true }
+}
+
+function r2Driver(config: ResumeStorageConfig): StorageDriver {
+  const client = new S3Client({ region: "auto", endpoint: config.endpoint, credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey } })
   return {
-    accountId,
-    bucket,
-    endpoint,
-    publicUrl,
-    accessKeyId,
-    secretAccessKey,
-    maxFileSize: MAX_RESUME_FILE_SIZE,
-    ready: true,
+    name: "r2",
+    async put(key, file, contentType, metadata) {
+      await client.send(new PutObjectCommand({ Bucket: config.bucket, Key: key, Body: new Uint8Array(await file.arrayBuffer()), ContentType: contentType, ContentLength: file.size, Metadata: metadata }))
+    },
+    async get(key) {
+      const response = await client.send(new GetObjectCommand({ Bucket: config.bucket, Key: key }))
+      if (!response.Body) throw new Error("The file could not be read from storage.")
+      const body = await response.Body.transformToByteArray()
+      return { body, contentType: response.ContentType ?? "application/octet-stream", contentLength: body.byteLength }
+    },
+    async remove(key) {
+      await client.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }))
+    },
+    async copy(fromKey, toKey) {
+      await client.send(new CopyObjectCommand({ Bucket: config.bucket, Key: toKey, CopySource: `${config.bucket}/${fromKey.split("/").map(encodeURIComponent).join("/")}` }))
+    },
   }
+}
+
+function localDriver(): StorageDriver {
+  const root = path.join(process.cwd(), ".data", "uploads")
+  const resolve = (key: string) => {
+    const target = path.resolve(root, key)
+    if (!target.startsWith(root + path.sep)) throw new Error("Invalid storage key.")
+    return target
+  }
+  return {
+    name: "local",
+    async put(key, file, contentType) {
+      const target = resolve(key)
+      await fs.mkdir(path.dirname(target), { recursive: true })
+      await fs.writeFile(target, new Uint8Array(await file.arrayBuffer()))
+      await fs.writeFile(`${target}.meta.json`, JSON.stringify({ contentType }))
+    },
+    async get(key) {
+      const target = resolve(key)
+      const body = new Uint8Array(await fs.readFile(target))
+      const meta = JSON.parse(await fs.readFile(`${target}.meta.json`, "utf8").catch(() => "{}")) as { contentType?: string }
+      return { body, contentType: meta.contentType ?? "application/octet-stream", contentLength: body.byteLength }
+    },
+    async remove(key) {
+      const target = resolve(key)
+      await fs.rm(target, { force: true })
+      await fs.rm(`${target}.meta.json`, { force: true })
+    },
+    async copy(fromKey, toKey) {
+      const from = resolve(fromKey), to = resolve(toKey)
+      await fs.mkdir(path.dirname(to), { recursive: true })
+      await fs.copyFile(from, to)
+      await fs.copyFile(`${from}.meta.json`, `${to}.meta.json`).catch(() => undefined)
+    },
+  }
+}
+
+function databaseDriver(): StorageDriver {
+  return {
+    name: "database",
+    async put(key, file, contentType) {
+      const data = Buffer.from(await file.arrayBuffer()).toString("base64")
+      await db.insert(storedFile).values({ key, contentType, size: file.size, data })
+        .onConflictDoUpdate({ target: storedFile.key, set: { contentType, size: file.size, data } })
+    },
+    async get(key) {
+      const [row] = await db.select().from(storedFile).where(eq(storedFile.key, key)).limit(1)
+      if (!row) throw new Error("The file could not be found in storage.")
+      const body = new Uint8Array(Buffer.from(row.data, "base64"))
+      return { body, contentType: row.contentType, contentLength: body.byteLength }
+    },
+    async remove(key) {
+      await db.delete(storedFile).where(eq(storedFile.key, key))
+    },
+    async copy(fromKey, toKey) {
+      const [row] = await db.select().from(storedFile).where(eq(storedFile.key, fromKey)).limit(1)
+      if (!row) throw new Error("The file could not be found in storage.")
+      await db.insert(storedFile).values({ key: toKey, contentType: row.contentType, size: row.size, data: row.data })
+        .onConflictDoUpdate({ target: storedFile.key, set: { contentType: row.contentType, size: row.size, data: row.data } })
+    },
+  }
+}
+
+let cachedDriver: StorageDriver | null | undefined
+function getDriver(): StorageDriver | null {
+  if (cachedDriver !== undefined) return cachedDriver
+  const config = getResumeStorageConfig()
+  const requested = process.env.STORAGE_DRIVER?.trim()
+  cachedDriver = config ? r2Driver(config)
+    : requested === "none" ? null
+    : requested === "db" || process.env.NODE_ENV === "production" ? databaseDriver()
+    : localDriver()
+  return cachedDriver
+}
+
+function requireDriver() {
+  const driver = getDriver()
+  if (!driver) throw new Error(getResumeStorageErrorMessage())
+  return driver
 }
 
 export function isResumeStorageConfigured() {
-  return getResumeStorageConfig() !== null
+  return getDriver() !== null
 }
 
 export function getResumeStorageErrorMessage() {
-  return "Resume storage is not configured. Set R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY in the environment."
+  return "File storage is not configured. Set R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY in the environment."
+}
+
+function safeFileName(fileName: string, fallback: string) {
+  return fileName.trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120) || fallback
+}
+
+/** Validate a CV upload. Returns an error message, or null when acceptable. */
+export function validateCvFile(file: unknown): string | null {
+  if (!(file instanceof File) || file.size === 0) return "Attach your CV (PDF, Word, RTF or TXT)."
+  if (!ACCEPTED_CV_TYPES.includes(file.type) && !ACCEPTED_CV_EXTENSIONS.test(file.name)) return "Upload your CV as a PDF, DOC, DOCX, RTF or TXT file."
+  if (file.size > MAX_RESUME_FILE_SIZE) return `CV files must be ${Math.round(MAX_RESUME_FILE_SIZE / (1024 * 1024))} MB or smaller.`
+  return null
 }
 
 export function buildResumeStorageKey(candidateId: string, fileName: string) {
-  const safeName = fileName
-    .trim()
-    .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120) || "resume"
-  const stamp = Date.now()
-  return `candidates/${candidateId}/resumes/${stamp}-${safeName}`
-}
-
-export function getPublicResumeUrl(storageKey: string) {
-  const config = getResumeStorageConfig()
-  if (!config) return null
-  return `${config.publicUrl.replace(/\/$/, "")}/${storageKey.replace(/^\/+/, "")}`
-}
-
-export function createResumeClient() {
-  const config = getResumeStorageConfig()
-  if (!config) throw new Error(getResumeStorageErrorMessage())
-
-  return new S3Client({
-    region: "auto",
-    endpoint: config.endpoint,
-    credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    },
-  })
+  return `candidates/${candidateId}/resumes/${Date.now()}-${safeFileName(fileName, "resume")}`
 }
 
 export async function uploadResumeToStorage({ candidateId, fileName, file }: { candidateId: string; fileName: string; file: File | Blob }) {
-  const config = getResumeStorageConfig()
-  if (!config) throw new Error(getResumeStorageErrorMessage())
-
   const key = buildResumeStorageKey(candidateId, fileName)
-  const client = createResumeClient()
   const mimeType = file.type || "application/octet-stream"
-
-  await client.send(new PutObjectCommand({
-    Bucket: config.bucket,
-    Key: key,
-    Body: file,
-    ContentType: mimeType,
-    ContentLength: file.size,
-    Metadata: {
-      candidateId,
-      originalName: fileName,
-    },
-  }))
-
-  return {
-    key,
-    url: getPublicResumeUrl(key) ?? `${config.endpoint.replace(/\/$/, "")}/${config.bucket}/${key}`,
-    mimeType,
-  }
+  await requireDriver().put(key, file, mimeType, { candidateId, originalName: fileName })
+  // Kept for the existing `url` column; files are only served through the download routes.
+  return { key, url: `storage://${key}`, mimeType }
 }
 
-export async function uploadApplicationFileToStorage({ applicationId, fileName, file, prefix = "applications" }: { applicationId: string; fileName: string; file: File | Blob; prefix?: string }) {
-  const config = getResumeStorageConfig()
-  if (!config) throw new Error(getResumeStorageErrorMessage())
-
-  const safeName = fileName.trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120) || "application-file"
-  const key = `${prefix}/${applicationId}/${Date.now()}-${safeName}`
-  const client = createResumeClient()
+/** Store a CV that belongs to one application (its own copy, independent of the profile resume). */
+export async function uploadApplicationFileToStorage({ applicationKey, fileName, file }: { applicationKey: string; fileName: string; file: File | Blob }) {
+  const key = `applications/${applicationKey}/${Date.now()}-${safeFileName(fileName, "cv")}`
   const mimeType = file.type || "application/octet-stream"
+  await requireDriver().put(key, file, mimeType, { applicationKey, originalName: fileName })
+  return { key, mimeType }
+}
 
-  await client.send(new PutObjectCommand({
-    Bucket: config.bucket,
-    Key: key,
-    Body: file,
-    ContentType: mimeType,
-    ContentLength: file.size,
-    Metadata: {
-      applicationId,
-      originalName: fileName,
-    },
-  }))
-
-  return {
-    key,
-    url: getPublicResumeUrl(key) ?? `${config.endpoint.replace(/\/$/, "")}/${config.bucket}/${key}`,
-    mimeType,
-  }
+/** Copy the candidate's profile resume into an application-owned file. */
+export async function copyResumeToApplication({ applicationKey, storageKey, fileName }: { applicationKey: string; storageKey: string; fileName: string }) {
+  const key = `applications/${applicationKey}/${Date.now()}-${safeFileName(fileName, "cv")}`
+  await requireDriver().copy(storageKey, key)
+  return { key }
 }
 
 export async function deleteResumeFromStorage(key: string) {
-  const config = getResumeStorageConfig()
-  if (!config) return false
-
-  const client = createResumeClient()
-  await client.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: key }))
+  const driver = getDriver()
+  if (!driver) return false
+  await driver.remove(key)
   return true
 }
 
 export async function getResumeFileFromStorage(key: string) {
-  const config = getResumeStorageConfig()
-  if (!config) throw new Error(getResumeStorageErrorMessage())
-
-  const client = createResumeClient()
-  const response = await client.send(new GetObjectCommand({ Bucket: config.bucket, Key: key }))
-  const body = response.Body
-  if (!body) throw new Error("The resume file could not be read from storage.")
-
-  return {
-    body,
-    contentType: response.ContentType ?? "application/octet-stream",
-    contentLength: response.ContentLength ?? undefined,
-    contentDisposition: response.ContentDisposition ?? undefined,
-  }
+  return requireDriver().get(key)
 }

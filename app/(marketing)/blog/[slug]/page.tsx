@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { Clock } from "lucide-react"
 import { PageHeader, PrototypeNote, SectionHeading } from "@/components/patterns"
 import { formatDate } from "@/lib/format"
-import { getPost, layoutPreview, posts } from "@/features/blog/data"
+import { getPost, posts } from "@/features/blog/data"
 import { ArticleBody, estimateReadingTime } from "@/features/blog/components/blocks"
 import { ReadingProgress } from "@/features/blog/components/reading-progress"
 import { RelatedLinks } from "@/features/blog/components/related-links"
@@ -11,7 +11,7 @@ import { RelatedLinks } from "@/features/blog/components/related-links"
 const ARTICLE_ID = "article-content"
 
 export function generateStaticParams() {
-  return [layoutPreview, ...posts].map(post => ({ slug: post.slug }))
+  return posts.map(post => ({ slug: post.slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

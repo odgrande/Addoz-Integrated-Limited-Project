@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth"
 import { AdminAuthError, requireAdmin } from "@/features/admin/queries"
 
 export const metadata: Metadata = {
-  title: { template: "%s · Admin | ADDOZ", default: "Admin | ADDOZ" },
+  title: { template: "%s · Admin | ADDOZ", default: "Admin" },
   robots: { index: false, follow: false },
 }
 

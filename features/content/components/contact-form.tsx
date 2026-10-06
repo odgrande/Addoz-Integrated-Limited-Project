@@ -24,20 +24,15 @@ function validate(values: Values): Errors {
   return errors
 }
 
-/**
- * The ADDOZ contact form (Directive 009 — editorial). This preview has no backend:
- * a valid submit "sends" locally, then the success state says so plainly and hands
- * off to a pre-filled mailto link — see PrototypeNote elsewhere for the same pattern.
- */
+/** The ADDOZ contact form: stored for the team and forwarded to the ADDOZ inbox. */
 export function ContactForm() {
   const [values, setValues] = useState<Values>(initialValues)
   const [errors, setErrors] = useState<Errors>({})
   const [status, setStatus] = useState<"idle" | "submitting" | "sent">("idle")
   const [attempt, setAttempt] = useState(0)
   const summaryRef = useRef<HTMLDivElement>(null)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [sendError, setSendError] = useState("")
 
-  useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }, [])
   useEffect(() => { if (attempt > 0) summaryRef.current?.focus() }, [attempt])
 
   const set = (field: Field) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -45,30 +40,35 @@ export function ContactForm() {
     setValues(current => ({ ...current, [field]: value }))
   }
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const nextErrors = validate(values)
     setErrors(nextErrors)
+    setSendError("")
     if (Object.keys(nextErrors).length > 0) { setAttempt(count => count + 1); return }
     setStatus("submitting")
-    timeoutRef.current = setTimeout(() => setStatus("sent"), 700)
+    try {
+      const response = await fetch("/api/contact", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(values) })
+      const payload = await response.json().catch(() => ({})) as { error?: string }
+      if (!response.ok) throw new Error(payload.error || "We couldn't send your message.")
+      setStatus("sent")
+    } catch (error) {
+      setStatus("idle")
+      setSendError(error instanceof Error ? error.message : "We couldn't send your message.")
+    }
   }
 
   const resetForm = () => { setValues(initialValues); setErrors({}); setStatus("idle") }
 
   if (status === "sent") {
     const firstName = values.name.trim().split(/\s+/)[0] || "there"
-    const mailBody = `${values.message}\n\n— ${values.name}${values.phone ? ` · ${values.phone}` : ""} · ${values.email}`
-    const mailtoHref = `mailto:${site.email}?subject=${encodeURIComponent(`ADDOZ — ${values.topic || "Message from the website"}`)}&body=${encodeURIComponent(mailBody)}`
     return <div className="ed-form-success" role="status">
       <CircleCheck size={28} aria-hidden="true" />
       <h3 className="t-h3">Thanks, {firstName}.</h3>
       <p className="t-body">
-        This is a preview, so nothing was actually sent — ADDOZ hasn’t seen this yet. Please email us
-        directly instead, and we’ll pick it up from there.
+        Your message is with the ADDOZ team. We&apos;ll reply to {values.email} — usually within two working days.
       </p>
       <div className="ed-form-success-actions">
-        <ActionButton href={mailtoHref} variant="dark" arrow>Email {site.email}</ActionButton>
         <button type="button" className="ed-form-reset" onClick={resetForm}>Write another message</button>
       </div>
     </div>
@@ -99,6 +99,7 @@ export function ContactForm() {
     <FormField label="Message" required error={errors.message} id="message">
       <Textarea name="message" rows={5} value={values.message} onChange={set("message")} />
     </FormField>
+    {sendError && <p className="field-error" role="alert">{sendError} You can also email <a className="text-link" href={`mailto:${site.email}`}>{site.email}</a>.</p>}
     <ActionButton type="submit" variant="dark" size="lg" loading={status === "submitting"} block>
       Send message
     </ActionButton>

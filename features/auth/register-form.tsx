@@ -9,11 +9,11 @@ import { roleHref } from "@/components/layout/auth-role"
 import { PasswordField } from "./password-field"
 import { PasswordStrengthMeter } from "./password-strength"
 import { ErrorSummary } from "./error-summary"
-import { focusFirstInvalid, isValidEmail, isValidPhone } from "./form-helpers"
+import { focusFirstInvalid, isValidEmail, isValidPhone, sanitizeRedirectPath } from "./form-helpers"
 
 type Errors = Partial<Record<"firstName" | "lastName" | "username" | "email" | "phone" | "password" | "company" | "accept" | "root", string>>
 
-export function RegisterForm() {
+export function RegisterForm({ redirect }: { redirect?: string }) {
   const router = useRouter()
   const { role, setRole } = useAuthRole()
   const [firstName, setFirstName] = useState("")
@@ -64,7 +64,11 @@ export function RegisterForm() {
       })
       const payload = await response.json().catch(() => null) as { error?: string } | null
       if (!response.ok) throw new Error(payload?.error || "Unable to create your account.")
-      router.push(roleHref(`/auth/verify?email=${encodeURIComponent(email.trim())}`, role))
+      // ADDOZ emails a 6-digit code; the account activates (and signs in) on the verify page
+      const params = new URLSearchParams({ email: email.trim() })
+      const target = sanitizeRedirectPath(redirect, "")
+      if (target) params.set("redirect", target)
+      router.push(roleHref(`/auth/verify?${params.toString()}`, role))
     } catch (error) {
       setStatus("editing")
       setErrors({ root: error instanceof Error ? error.message : "Unable to create your account." })

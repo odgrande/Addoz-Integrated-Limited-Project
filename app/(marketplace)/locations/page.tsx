@@ -4,6 +4,9 @@ import { BrandShape } from "@/components/brand/brand-shape"
 import { areasInState, featuredAreas, states } from "@/features/locations/data"
 import { LocationCard } from "@/features/locations/components/location-card"
 
+// Live counts and companies: rebuilt at most once a minute
+export const revalidate = 60
+
 export const metadata: Metadata = {
   title: "Locations",
   description: "Browse ADDOZ jobs by location across Lagos and Ogun State, from popular areas to the complete list grouped by state.",
