@@ -32,6 +32,9 @@ const allowedHosts = Array.from(new Set([
   process.env.VERCEL_URL?.trim(),
   process.env.VERCEL_BRANCH_URL?.trim(),
   process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim(),
+  // Netlify: the site's main address and the address of each deploy preview
+  hostOf(process.env.URL),
+  hostOf(process.env.DEPLOY_PRIME_URL),
   ...(process.env.AUTH_ALLOWED_HOSTS ?? "").split(",").map(host => host.trim()),
   // Loopback is always allowed so a local `next start` can be smoke-tested.
   "localhost:*",
