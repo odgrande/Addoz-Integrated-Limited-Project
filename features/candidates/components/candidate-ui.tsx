@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react"
 import { Bookmark, FileText, LoaderCircle, Trash2, UploadCloud } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { gsap, reducedMotion } from "@/lib/motion"
+import { formatFileSize } from "@/lib/format"
 
 const MAX_RESUME_BYTES = 4 * 1024 * 1024
 const ACCEPTED_RESUME_TYPES = [
@@ -25,14 +26,6 @@ async function request(resource: string, method: string, body?: Record<string, u
   return payload
 }
 
-function formatFileSize(size: string | number | null | undefined) {
-  const raw = typeof size === "number" ? size : typeof size === "string" ? Number.parseFloat(size.replace(/[^\d.]/g, "")) : 0
-  const bytes = Number.isFinite(raw) ? raw : 0
-  if (bytes <= 0) return "0 KB"
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
 
 function SubmitButton({ busy, children, disabled = false }: { busy: boolean; children: React.ReactNode; disabled?: boolean }) {
   return <button type="submit" className="action-button action-primary" disabled={busy || disabled}>{busy && <LoaderCircle className="spin" size={16} aria-hidden="true" />}{children}</button>

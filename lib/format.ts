@@ -65,3 +65,13 @@ export function initials(name: string) {
     .map(part => part[0]!.toUpperCase())
     .join("")
 }
+
+/** Bytes (number or numeric string, as stored for uploads) → "800 B", "12.4 KB", "1.2 MB". */
+export function formatFileSize(size: string | number | null | undefined) {
+  const raw = typeof size === "number" ? size : typeof size === "string" ? Number.parseFloat(size.replace(/[^\d.]/g, "")) : 0
+  const bytes = Number.isFinite(raw) ? raw : 0
+  if (bytes <= 0) return "0 KB"
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}

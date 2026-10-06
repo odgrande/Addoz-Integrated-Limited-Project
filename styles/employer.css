@@ -110,7 +110,7 @@
 .cover-note summary { display: inline-flex; align-items: center; gap: .2rem; cursor: pointer; font-weight: 700; color: var(--addoz-purple); list-style: none; }
 .cover-note summary::-webkit-details-marker { display: none; }
 .cover-note p { max-width: 36ch; margin-top: .35rem; color: var(--addoz-black-60); white-space: pre-wrap; }
-@media (max-width: 767px) { .match-cell { justify-items: end; text-align: right; } .skill-chips { justify-content: flex-end; } .applicant-actions { justify-content: flex-end; } }
+@media (max-width: 767px) { .employer-table .match-cell { justify-items: end; text-align: right; } .employer-table .skill-chips { justify-content: flex-end; } .employer-table .applicant-actions { justify-content: flex-end; } }
 /* Applicant profile */
 .applicant-profile-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
 .applicant-profile-grid { display: grid; gap: var(--app-gap, var(--sp-4)); grid-template-columns: minmax(0, 1fr); align-items: start; }
@@ -132,7 +132,9 @@
 .action-button.is-saved { --btn-fg: var(--addoz-purple); }
 .contact-channels { display: grid; gap: .6rem; margin: 0; padding: 0; border: 0; }
 .stage-select-wrap { display: inline-flex; }
-.employer-company-status strong { font-size: clamp(1.4rem, 1rem + 1.4vw, var(--text-2xl, 2rem)); overflow-wrap: anywhere; }
+/* The status is a word, not a number: size it to the card itself (cards narrow as the row fills) and wrap only between words */
+.employer-stat-card { min-width: 0; container-type: inline-size; }
+.employer-company-status strong { font-size: clamp(1.05rem, 17cqi, var(--text-2xl, 2rem)); line-height: 1.05; overflow-wrap: normal; word-break: normal; }
 .applicant-cv-text { margin: 0; max-height: min(75vh, 56rem); overflow: auto; padding: var(--sp-4); border: var(--border-light); background: var(--addoz-cream, #faf6eb); font-family: inherit; font-size: var(--text-sm); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
 .bulk-select-all { color: var(--addoz-black); }
 .match-band-tab strong { color: var(--addoz-black); }

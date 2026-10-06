@@ -191,3 +191,5 @@
   .msg-workspace .msg-thread { display: flex; }
   .msg-back { display: none; }
 }
+/* A trailing arrow icon stays with its link text instead of wrapping onto its own line */
+.inline-link:has(> svg:last-child) { white-space: nowrap; }

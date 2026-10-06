@@ -12,11 +12,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // QA only (never set in production): run against a throwaway local PGlite database
-  ...(process.env.PGLITE_DIR ? {
-    serverExternalPackages: ['@electric-sql/pglite'],
-    turbopack: { resolveAlias: { '@/lib/db/schema': './lib/db/schema.ts', '@/lib/db': './scripts/qa/pglite-db.ts' } },
-  } : {}),
 }
 
 export default nextConfig

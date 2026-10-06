@@ -88,3 +88,6 @@ textarea.input { min-height: 7rem; resize: vertical; }
 .notification-feed-go { margin-top: .15rem; color: var(--addoz-black-40); }
 .notification-feed .is-read .notification-feed-main strong { font-weight: 700; color: var(--addoz-black-80); }
 @media (max-width: 480px) { .notification-feed > li > a, .notification-feed > li > div { grid-template-columns: 2.25rem minmax(0, 1fr) auto; padding-inline: var(--sp-2); } .notification-feed time { grid-column: 2; grid-row: 2; padding-top: 0; } .notification-feed-go { grid-column: 3; grid-row: 1; } .notification-feed-icon { width: 2.25rem; height: 2.25rem; } }
+/* Heading links ("View all ↗") stay on one line; the heading text wraps instead */
+.panel-heading > a, .panel-heading > .inline-link { flex: 0 0 auto; white-space: nowrap; }
+.panel-heading > div { min-width: 0; }

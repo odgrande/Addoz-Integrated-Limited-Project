@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { ArrowUpRight, BellRing, BriefcaseBusiness, FileText, Heart, Sparkles } from "lucide-react"
 import { CandidateReveal, CandidateSaveButton } from "@/features/candidates/components/candidate-ui"
 import { getCandidateOverview } from "@/features/candidates/queries"
+import { formatFileSize } from "@/lib/format"
 
 export default async function CandidateDashboardPage() {
   const data = await getCandidateOverview(await headers())
@@ -15,7 +16,7 @@ export default async function CandidateDashboardPage() {
 
     <section className="candidate-overview-grid" aria-label="Candidate overview">
       <article className="candidate-panel candidate-completion"><div className="panel-heading"><div><p className="app-eyebrow">Profile strength</p><h2>{data.completion}% complete</h2></div><span className="completion-ring" style={{ "--completion": `${data.completion}%` } as React.CSSProperties}>{data.completion}%</span></div><p>Add the details that help the right people understand your work.</p><div className="candidate-progress"><span style={{ width: `${data.completion}%` }} /></div><Link className="inline-link" href="/candidate/profile">Review your profile <ArrowUpRight size={15} aria-hidden="true" /></Link></article>
-      <article className="candidate-panel candidate-resume-card"><div className="panel-heading"><div><p className="app-eyebrow">Resume status</p><h2>{data.resume ? "Ready to send" : "Add your resume"}</h2></div><FileText size={27} aria-hidden="true" /></div><p>{data.resume ? `${data.resume.fileName}${data.resume.fileSize ? ` · ${data.resume.fileSize}` : ""}` : "You need a CV on your profile to apply for jobs. Upload it once and it goes with every application."}</p><Link className="inline-link" href="/candidate/resume">{data.resume ? "Manage resume" : "Add resume"} <ArrowUpRight size={15} aria-hidden="true" /></Link></article>
+      <article className="candidate-panel candidate-resume-card"><div className="panel-heading"><div><p className="app-eyebrow">Resume status</p><h2>{data.resume ? "Ready to send" : "Add your resume"}</h2></div><FileText size={27} aria-hidden="true" /></div><p>{data.resume ? `${data.resume.fileName}${data.resume.fileSize ? ` · ${formatFileSize(data.resume.fileSize)}` : ""}` : "You need a CV on your profile to apply for jobs. Upload it once and it goes with every application."}</p><Link className="inline-link" href="/candidate/resume">{data.resume ? "Manage resume" : "Add resume"} <ArrowUpRight size={15} aria-hidden="true" /></Link></article>
     </section>
 
     <section className="candidate-dashboard-grid">
