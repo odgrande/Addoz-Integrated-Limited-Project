@@ -1,0 +1,5 @@
+# Netlify build settings. Next.js is detected automatically; this file only
+# tells the secrets scanner which variables are public configuration, not
+# secrets, so their values appearing in the code or build output is expected.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NODE_VERSION,NEXT_PUBLIC_APP_URL,BETTER_AUTH_URL,AUTH_ALLOWED_HOSTS,EMAIL_FROM,CONTACT_EMAIL,ADMIN_EMAIL,ADMIN_NAME"
