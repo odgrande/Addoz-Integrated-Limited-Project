@@ -6,6 +6,7 @@ import { db } from "@/lib/db"
 import { category, company, job, location } from "@/lib/db/schema"
 import { searchMarketplace } from "@/features/jobs/public-data"
 import type { Company } from "./data"
+import { liveJob } from "@/features/jobs/live"
 
 const tones: Company["tone"][] = ["purple", "yellow", "orange", "black"]
 
@@ -42,7 +43,7 @@ function toCompany(row: CompanyRow): Company {
 
 /** Active companies with at least one live role — the public directory. */
 export const listPublicCompanies = cache(async (): Promise<Company[]> => {
-  const activeJobs = and(eq(job.companyId, company.id), eq(job.status, "Active"))
+  const activeJobs = and(eq(job.companyId, company.id), liveJob())
   const rows = await db.select({
     slug: company.slug,
     name: company.name,

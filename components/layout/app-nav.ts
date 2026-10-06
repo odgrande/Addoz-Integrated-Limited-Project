@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { Bell, BookOpen, BriefcaseBusiness, Building2, ChartColumn, FileText, FolderKanban, Gauge, Heart, LayoutGrid, Mail, MapPin, MessageSquare, MessageSquareQuote, PenSquare, Settings, Sparkles, UserRound, Users, UsersRound, BellRing, ClipboardList, Tags, ShieldCheck } from "lucide-react"
+import { Bell, BookmarkCheck, BookOpen, BriefcaseBusiness, Building2, ChartColumn, FileText, FolderKanban, Gauge, Heart, LayoutGrid, Mail, MapPin, MessageSquare, MessageSquareQuote, PenSquare, Settings, Sparkles, UserRound, Users, UsersRound, BellRing, ClipboardList, Tags, ShieldCheck } from "lucide-react"
 
 /**
  * Application navigation for the three workspaces. `tabs` are the items that sit
@@ -53,6 +53,7 @@ export const appConfigs: Record<AppId, AppConfig> = {
         { label: "Jobs", href: "/employer/jobs", icon: BriefcaseBusiness },
         { label: "Post a job", href: "/employer/jobs/new", icon: PenSquare, exact: true },
         { label: "Applicants", href: "/employer/applicants", icon: UsersRound },
+        { label: "Saved applicants", href: "/employer/saved", icon: BookmarkCheck },
         { label: "Messages", href: "/employer/messages", icon: MessageSquare },
         { label: "Analytics", href: "/employer/analytics", icon: ChartColumn },
       ] },

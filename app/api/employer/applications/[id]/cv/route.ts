@@ -4,7 +4,7 @@ import { job, jobApplication } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, requireEmployer } from "@/features/employers/queries"
 import { storedFileResponse } from "@/lib/storage/serve"
 
-/** Download the CV attached to an application for one of the employer's own jobs. */
+/** The CV attached to an application for one of the employer's own jobs (`?view=1` opens PDFs in the browser). */
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { profile } = await requireEmployer(request.headers)
@@ -15,7 +15,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       .from(jobApplication).innerJoin(job, eq(jobApplication.jobId, job.id))
       .where(and(eq(jobApplication.id, id), eq(job.companyId, profile.companyId))).limit(1)
     if (!record?.storageKey) return Response.json({ error: "CV not found." }, { status: 404 })
-    return await storedFileResponse(record as { storageKey: string; fileName: string | null; mimeType: string | null })
+    return await storedFileResponse({ ...(record as { storageKey: string; fileName: string | null; mimeType: string | null }), inline: new URL(request.url).searchParams.get("view") === "1" })
   } catch (error) {
     if (error instanceof EmployerAuthError) return Response.json({ error: "Authentication required." }, { status: 401 })
     if (error instanceof EmployerOwnershipError) return Response.json({ error: "CV not found." }, { status: 404 })

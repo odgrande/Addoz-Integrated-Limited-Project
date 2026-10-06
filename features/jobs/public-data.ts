@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { candidateProfile, category, company, employerProfile, job, jobApplication, location, resume, savedJob } from "@/lib/db/schema"
 import type { Job } from "@/features/jobs/data"
+import { liveJob } from "@/features/jobs/live"
 
 export const MARKETPLACE_PAGE_SIZE = 9
 
@@ -130,7 +131,7 @@ function baseQuery() {
 }
 
 function conditions(filters: MarketplaceFilters) {
-  const where = [eq(job.status, "Active")]
+  const where = [liveJob()]
   const query = filters.q?.trim()
   if (query) where.push(or(ilike(job.title, `%${query}%`), ilike(job.summary, `%${query}%`), ilike(company.name, `%${query}%`))!)
   if (filters.category) where.push(eq(category.slug, filters.category))
@@ -160,7 +161,7 @@ export async function searchMarketplace(filters: MarketplaceFilters = {}) {
 
 /** Job record only — shared by generateMetadata and the page within one request. */
 const getPublicJobRecord = cache(async (slug: string) => {
-  const [record] = await baseQuery().where(and(eq(job.slug, slug), eq(job.status, "Active"))).limit(1)
+  const [record] = await baseQuery().where(and(eq(job.slug, slug), liveJob())).limit(1)
   return record ?? null
 })
 
@@ -174,7 +175,7 @@ export const getPublicJob = cache(async (slug: string) => {
   if (!record) return null
   const [jobState, relatedRecords, viewer] = await Promise.all([
     getViewerJobState(),
-    baseQuery().where(and(eq(job.status, "Active"), or(eq(job.categoryId, record.job.categoryId), eq(job.locationId, record.job.locationId)), sql`${job.id} <> ${record.job.id}`)).orderBy(desc(job.postedAt)).limit(3)
+    baseQuery().where(and(liveJob(), or(eq(job.categoryId, record.job.categoryId), eq(job.locationId, record.job.locationId)), sql`${job.id} <> ${record.job.id}`)).orderBy(desc(job.postedAt)).limit(3)
       .catch(error => { unstable_rethrow(error); console.error("[marketplace] related jobs lookup failed", error); return [] }),
     getViewer(),
   ])
@@ -189,7 +190,7 @@ export async function getMarketplaceTaxonomy() {
 
 /** Open roles per category and per location (live, active taxonomy only). */
 export const getLiveJobCounts = cache(async () => {
-  const live = and(eq(job.status, "Active"), eq(company.active, true))
+  const live = and(liveJob(), eq(company.active, true))
   const [byCategory, byLocation] = await Promise.all([
     db.select({ slug: category.slug, value: count(job.id) }).from(job).innerJoin(company, eq(job.companyId, company.id)).innerJoin(category, eq(job.categoryId, category.id)).where(live).groupBy(category.slug),
     db.select({ slug: location.slug, value: count(job.id) }).from(job).innerJoin(company, eq(job.companyId, company.id)).innerJoin(location, eq(job.locationId, location.id)).where(live).groupBy(location.slug),

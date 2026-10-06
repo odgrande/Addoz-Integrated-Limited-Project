@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import { Check, CircleCheck } from "lucide-react"
+import { Check, CircleCheck, FileUp } from "lucide-react"
 import { ActionButton, Checkbox, FileDrop, FormField, Input, Modal, Radio, Textarea } from "@/components/patterns"
 import { useSession } from "@/lib/auth-client"
 import type { Viewer } from "@/features/jobs/public-data"
 
-type Step = "choice" | "form" | "review" | "done"
+type Step = "choice" | "needs-cv" | "form" | "review" | "done"
 type Draft = { name: string; email: string; phone: string; coverLetter: string; consent: boolean }
 type Errors = Partial<Record<"name" | "email" | "phone" | "cv" | "consent" | "root", string>>
 type Role = "candidate" | "employer" | "admin" | "guest" | "loading"
@@ -62,11 +62,16 @@ export function ApplyFlow({ jobSlug, jobTitle, companyName, applied: appliedOnSe
     : role === "candidate" ? { name: clientSession?.user?.name ?? "", email: clientSession?.user?.email ?? "" } : null
   const profileCv = viewer.role === "candidate" ? viewer.resume : null
 
+  // Registered candidates apply with the CV on their profile; without one they add it first
+  const needsProfileCv = viewer.role === "candidate" && !viewer.resume
+  const addCvHref = `/candidate/resume?redirect=${encodeURIComponent(`/jobs/${jobSlug}?apply=1`)}`
+
   const signInHref = `/auth/login?role=candidate&redirect=${encodeURIComponent(`/jobs/${jobSlug}?apply=1`)}`
   const registerHref = `/auth/register?role=candidate&redirect=${encodeURIComponent(`/jobs/${jobSlug}?apply=1`)}`
 
   function startCandidate() {
     setAsGuest(false)
+    if (needsProfileCv) { setErrors({}); setStep("needs-cv"); setOpen(true); return }
     setDraft(emptyDraft(account?.name ?? "", account?.email ?? ""))
     setCv(null)
     setUseProfileCv(Boolean(profileCv))
@@ -140,6 +145,7 @@ export function ApplyFlow({ jobSlug, jobTitle, companyName, applied: appliedOnSe
       const data = await response.json().catch(() => ({})) as { error?: string; code?: string }
       if (!response.ok) {
         if (data.code === "ALREADY_APPLIED") { setApplied(true); setOpen(false); router.refresh(); return }
+        if (data.code === "PROFILE_CV_REQUIRED") { setStep("needs-cv"); return }
         setErrors({ root: data.error || "We couldn't submit your application. Please try again." })
         setStep(data.code === "ACCOUNT_EXISTS" || data.code === "INVALID" || data.code === "CV_REQUIRED" ? "form" : "review")
         return
@@ -169,7 +175,7 @@ export function ApplyFlow({ jobSlug, jobTitle, companyName, applied: appliedOnSe
       ? <span className="candidate-status muted" title="Sign in with a candidate account to apply">Candidates only</span>
       : <ActionButton variant="primary" onClick={start} disabled={role === "loading"} aria-busy={role === "loading" || undefined}>Apply now</ActionButton>
 
-  const title = step === "done" ? "Application sent." : step === "choice" ? "How would you like to apply?" : step === "review" ? "Review your application" : jobTitle
+  const title = step === "done" ? "Application sent." : step === "choice" ? "How would you like to apply?" : step === "needs-cv" ? "Add your CV to continue" : step === "review" ? "Review your application" : jobTitle
   const eyebrow = step === "done" ? undefined : asGuest ? "Guest application" : step === "choice" ? "Apply on ADDOZ" : "Your application"
 
   return <>
@@ -180,6 +186,13 @@ export function ApplyFlow({ jobSlug, jobTitle, companyName, applied: appliedOnSe
         <ActionButton variant="primary" block href={signInHref}>Sign in to apply</ActionButton>
         <ActionButton variant="ghost" block onClick={continueAsGuest}>Continue as guest</ActionButton>
         <p className="apply-note">New to ADDOZ? <a className="text-link" href={registerHref}>Create a candidate account</a></p>
+      </div>}
+
+      {step === "needs-cv" && <div className="apply-form apply-needs-cv">
+        <FileUp size={36} strokeWidth={1.75} aria-hidden="true" />
+        <p>Employers review every application with a CV, so your profile needs one before you can apply. Upload it once — it&apos;s saved to your profile for every future application, and we&apos;ll bring you straight back to <strong>{jobTitle}</strong>.</p>
+        <ActionButton variant="primary" block href={addCvHref}>Add my CV</ActionButton>
+        <ActionButton variant="ghost" block onClick={() => close(false)}>Not now</ActionButton>
       </div>}
 
       {step === "form" && <form className="apply-form" onSubmit={review} noValidate>

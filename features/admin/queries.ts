@@ -4,6 +4,7 @@ import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { auditLog, candidateProfile, category, company, employerProfile, job, jobApplication, location, notification, resume, user } from "@/lib/db/schema"
+import { liveJob } from "@/features/jobs/live"
 
 export class AdminAuthError extends Error { constructor() { super("Admin authentication required"); this.name = "AdminAuthError" } }
 export class AdminOwnershipError extends Error { constructor() { super("Admin access denied"); this.name = "AdminOwnershipError" } }
@@ -25,7 +26,7 @@ export async function getAdminDashboard(headers: Headers) {
     db.select({ value: count(user.id) }).from(user),
     db.select({ value: count(user.id) }).from(user).where(eq(user.role, "candidate")),
     db.select({ value: count(user.id) }).from(user).where(eq(user.role, "employer")),
-    db.select({ value: count(job.id) }).from(job).where(eq(job.status, "Active")),
+    db.select({ value: count(job.id) }).from(job).where(liveJob()),
     db.select({ value: count(jobApplication.id) }).from(jobApplication),
     db.select({ value: count(company.id) }).from(company),
     db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(8),
@@ -40,7 +41,7 @@ export async function getAdminJobs(headers: Headers, filters: { q?: string; stat
   if (filters.status) where.push(eq(job.status, filters.status))
   if (filters.categoryId) where.push(eq(job.categoryId, filters.categoryId))
   if (filters.locationId) where.push(eq(job.locationId, filters.locationId))
-  return db.select({ id: job.id, title: job.title, status: job.status, slug: job.slug, type: job.type, workplace: job.workplace, createdAt: job.createdAt, companyName: company.name, companyId: company.id, categoryName: category.name, locationName: location.name, applicants: count(jobApplication.id) }).from(job).innerJoin(company, eq(job.companyId, company.id)).innerJoin(category, eq(job.categoryId, category.id)).innerJoin(location, eq(job.locationId, location.id)).leftJoin(jobApplication, eq(job.id, jobApplication.jobId)).where(where.length ? and(...where) : undefined).groupBy(job.id, company.id, category.name, location.name).orderBy(desc(job.createdAt))
+  return db.select({ id: job.id, title: job.title, status: job.status, deadline: job.deadline, slug: job.slug, type: job.type, workplace: job.workplace, createdAt: job.createdAt, companyName: company.name, companyId: company.id, categoryName: category.name, locationName: location.name, applicants: count(jobApplication.id) }).from(job).innerJoin(company, eq(job.companyId, company.id)).innerJoin(category, eq(job.categoryId, category.id)).innerJoin(location, eq(job.locationId, location.id)).leftJoin(jobApplication, eq(job.id, jobApplication.jobId)).where(where.length ? and(...where) : undefined).groupBy(job.id, company.id, category.name, location.name).orderBy(desc(job.createdAt))
 }
 
 export async function getAdminApplications(headers: Headers, filters: { q?: string; stage?: string } = {}) {

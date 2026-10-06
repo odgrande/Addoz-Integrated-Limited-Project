@@ -91,7 +91,7 @@ export function ProfileForm({ initial }: { initial: { name: string; headline: st
   </form>
 }
 
-export function ResumeForm({ initial, storageConfigured }: { initial: { id?: string; fileName: string; fileSize: string | null; url: string; storageKey?: string | null } | null; storageConfigured: boolean }) {
+export function ResumeForm({ initial, storageConfigured, returnTo }: { initial: { id?: string; fileName: string; fileSize: string | null; url: string; storageKey?: string | null } | null; storageConfigured: boolean; /** Where to continue after uploading (an application that needed a CV). */ returnTo?: string }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
@@ -139,8 +139,13 @@ export function ResumeForm({ initial, storageConfigured }: { initial: { id?: str
       const payload = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(payload.error || "Unable to upload resume.")
       setStatus("success")
-      setMessage("Resume uploaded successfully.")
       setSelectedFileName(file.name)
+      if (returnTo) {
+        setMessage("CV saved. Taking you back to your application…")
+        router.push(returnTo)
+        return
+      }
+      setMessage("Resume uploaded successfully.")
       router.refresh()
     } catch (error) {
       setStatus("error")

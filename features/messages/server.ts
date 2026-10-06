@@ -120,7 +120,7 @@ async function markRead(conversationId: string, userId: string) {
     .onConflictDoUpdate({ target: [conversationRead.conversationId, conversationRead.userId], set: { lastReadAt: new Date() } })
 }
 
-export async function sendMessage(viewer: MessageViewer, id: string, body: string) {
+export async function sendMessage(viewer: MessageViewer, id: string, body: string, options: { emailRecipients?: boolean } = {}) {
   const thread = await loadConversation(id)
   if (!thread || !canAccess(viewer, thread)) throw new MessagesAccessError()
   // Admins may read application threads for moderation but don't post into them
@@ -149,7 +149,8 @@ export async function sendMessage(viewer: MessageViewer, id: string, body: strin
     title: `New message: ${thread.subject}`,
     body: `${senderLabel}: ${snippet}`,
     href,
-    email: { subject: `${senderLabel} sent you a message on ADDOZ`, actionLabel: "Read and reply", footer: href.startsWith("/candidate") ? GUEST_ACCOUNT_FOOTER : undefined },
+    // Skipped when the sender is also emailing the same text directly
+    email: options.emailRecipients === false ? undefined : { subject: `${senderLabel} sent you a message on ADDOZ`, actionLabel: "Read and reply", footer: href.startsWith("/candidate") ? GUEST_ACCOUNT_FOOTER : undefined },
   })))
   return { id: created!.id }
 }

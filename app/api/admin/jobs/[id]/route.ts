@@ -5,6 +5,7 @@ import { company, conversation, job, jobApplication, savedJob } from "@/lib/db/s
 import { AdminAuthError, recordAdminAction, requireAdmin } from "@/features/admin/queries"
 import { companyEmployerUserIds, notify } from "@/lib/notify"
 import { deleteResumeFromStorage } from "@/lib/storage/r2"
+import { deadlineFrom, durationOf, isExpired } from "@/features/jobs/listing"
 
 function failure(error: unknown, fallback: string) {
   if (error instanceof AdminAuthError) return Response.json({ error: "Admin authentication required." }, { status: 401 })
@@ -27,16 +28,18 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const { action, note } = parsed.data
     if (action === "decline" && !note) return Response.json({ error: "Add a short reason so the employer knows what to fix." }, { status: 400 })
 
-    const [current] = await db.select({ id: job.id, title: job.title, status: job.status, companyId: job.companyId, approvedAt: job.approvedAt, companyName: company.name })
+    const [current] = await db.select({ id: job.id, title: job.title, status: job.status, companyId: job.companyId, approvedAt: job.approvedAt, postedAt: job.postedAt, deadline: job.deadline, companyName: company.name })
       .from(job).innerJoin(company, eq(job.companyId, company.id)).where(eq(job.id, id)).limit(1)
     if (!current) return Response.json({ error: "Job not found." }, { status: 404 })
 
     const now = new Date()
-    const changes = action === "approve" ? { status: "Active", approvedAt: now, moderationNote: null, postedAt: now }
+    // Going live (approval, or restoring an expired/archived job) restarts the employer's chosen duration
+    const relist = { postedAt: now, deadline: deadlineFrom(now, durationOf(current.postedAt, current.deadline)) }
+    const changes = action === "approve" ? { status: "Active", approvedAt: now, moderationNote: null, ...relist }
       : action === "decline" ? { status: "Declined", moderationNote: note! }
       : action === "pause" ? { status: "Paused" }
       : action === "archive" ? { status: "Archived" }
-      : { status: current.approvedAt ? "Active" : "Pending" } // restore
+      : current.approvedAt ? { status: "Active", ...(isExpired(current.deadline) ? relist : {}) } : { status: "Pending" } // restore
     await db.update(job).set({ ...changes, updatedAt: now }).where(eq(job.id, id))
     await recordAdminAction(request.headers, `job.${action}`, "job", id, note ? { note } : undefined)
 

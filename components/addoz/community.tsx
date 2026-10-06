@@ -5,7 +5,6 @@ import { flushSync } from "react-dom"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { gsap, useGSAP, reducedMotion } from "@/lib/motion"
 import { initials } from "@/lib/format"
-import { sourceSite } from "@/lib/demo-jobs"
 import { testimonials } from "@/features/content/testimonials"
 import { ScrambleLabel } from "./scramble-label"
 
@@ -46,7 +45,7 @@ export function Community() {
     <div className="community-intro">
       <p className="eyebrow"><span className="eyebrow-line" /><ScrambleLabel text="THE PEOPLE BEHIND THE POSSIBILITIES" /></p>
       <h2 id="community-title" data-reveal>Real people.<br />New chapters.</h2>
-      <a className="story-source" href={sourceSite} target="_blank" rel="noreferrer">Stories from the ADDOZ community <span aria-hidden="true">↗</span></a>
+      <p className="story-source">Stories from the ADDOZ community</p>
     </div>
     <figure className="community-quote">
       <span className="quote-mark" aria-hidden="true">“</span>

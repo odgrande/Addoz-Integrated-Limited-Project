@@ -3,7 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { candidateProfile, company, jobApplication, job } from "@/lib/db/schema"
 import { GUEST_ACCOUNT_FOOTER, notify } from "@/lib/notify"
-import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicants, requireEmployer } from "@/features/employers/queries"
+import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicant, requireEmployer } from "@/features/employers/queries"
 import { employerStages } from "@/features/employers/stages"
 
 const stageSchema = z.object({ stage: z.enum(employerStages) })
@@ -14,9 +14,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const id = (await context.params).id
     const parsed = stageSchema.safeParse(await request.json().catch(() => null))
     if (!parsed.success) return Response.json({ error: "Choose a valid application stage." }, { status: 400 })
-    const applications = await getEmployerApplicants(request.headers)
-    const application = applications.find(item => item.id === id)
-    if (!application) throw new EmployerOwnershipError()
+    const application = await getEmployerApplicant(request.headers, id)
     const [updated] = await db.update(jobApplication).set({ stage: parsed.data.stage }).from(job).where(and(eq(jobApplication.id, id), eq(jobApplication.jobId, job.id), eq(job.companyId, profile.companyId!))).returning()
 
     // Tell the candidate when their application moves (not for a reset back to "Applied")

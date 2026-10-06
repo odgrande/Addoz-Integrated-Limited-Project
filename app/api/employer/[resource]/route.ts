@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { adminUserIds, notify } from "@/lib/notify"
 import { company, employerProfile, job, notification, user } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicants, requireEmployer } from "@/features/employers/queries"
+import { deadlineFrom, listingDays } from "@/features/jobs/listing"
 
 const jobSchema = z.object({
   title: z.string().trim().min(2).max(160),
@@ -20,7 +21,7 @@ const jobSchema = z.object({
   responsibilities: z.array(z.string().trim().min(1).max(300)).min(1).max(12),
   requirements: z.array(z.string().trim().min(1).max(300)).min(1).max(12),
   skills: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
-  deadline: z.string().nullable().optional(),
+  durationDays: z.coerce.number().int().optional(),
   apply: z.enum(["addoz", "email"]).default("addoz"),
   status: z.enum(["Draft", "Active"]).default("Draft"),
 })
@@ -77,6 +78,7 @@ export async function POST(request: Request, context: { params: Promise<{ resour
       if (!profile.companyId) return Response.json({ error: "Complete your company profile first." }, { status: 409 })
       const parsed = jobSchema.safeParse({ ...body, responsibilities: parseList(body.responsibilities), requirements: parseList(body.requirements), skills: parseList(body.skills) })
       if (!parsed.success) return Response.json({ error: "Complete the required job fields.", fields: parsed.error.flatten().fieldErrors }, { status: 400 })
+      const now = new Date()
       const slugBase = slugify(parsed.data.title)
       const slug = `${slugBase}-${Date.now().toString(36)}`
       const [created] = await db.insert(job).values({
@@ -92,7 +94,9 @@ export async function POST(request: Request, context: { params: Promise<{ resour
         salaryMin: parsed.data.salaryMin ?? null,
         salaryMax: parsed.data.salaryMax ?? null,
         salaryPeriod: parsed.data.salaryPeriod ?? "month",
-        deadline: parsed.data.deadline ? new Date(parsed.data.deadline) : null,
+        // The listing clock restarts whenever the job goes live (publish or ADDOZ approval)
+        postedAt: now,
+        deadline: deadlineFrom(now, listingDays(parsed.data.durationDays)),
         apply: parsed.data.apply,
         summary: parsed.data.summary,
         responsibilities: parsed.data.responsibilities,

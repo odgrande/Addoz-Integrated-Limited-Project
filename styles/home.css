@@ -360,8 +360,7 @@
 .community .eyebrow { color: rgba(255, 255, 255, 0.72); }
 .community-intro h2 { font-size: var(--type-h2-statement); font-weight: 800; line-height: 0.98; letter-spacing: -0.045em; }
 @media (min-width: 1024px) and (max-width: 1279px) { .community-intro h2 { font-size: var(--type-h2); } }
-.story-source { display: inline-block; margin-top: var(--sp-6); font-size: var(--type-small); font-weight: 700; text-decoration: underline; text-underline-offset: 0.3em; text-decoration-color: rgba(255, 255, 255, 0.4); }
-.story-source:hover { text-decoration-color: currentColor; }
+.story-source { display: inline-block; margin-top: var(--sp-6); font-size: var(--type-small); font-weight: 700; }
 .community-quote { margin: 0; }
 .quote-mark { display: block; height: 0.55em; font-size: clamp(4rem, 3rem + 4vw, 7rem); font-weight: 800; line-height: 1; color: var(--addoz-yellow); }
 .community-story blockquote { max-width: 30ch; font-size: clamp(1.375rem, 1rem + 1.5vw, 2.375rem); font-weight: 700; line-height: 1.22; letter-spacing: -0.025em; }

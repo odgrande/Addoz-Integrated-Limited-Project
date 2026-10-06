@@ -48,3 +48,5 @@
 .admin-confirm .input { width: auto; min-width: 9rem; flex: 1 1 9rem; padding-block: 0.4rem; }
 .admin-danger { background: #b42318; border-color: #b42318; color: #fff; }
 .admin-row-actions .field-error { flex-basis: 100%; }
+.admin-status.status-expired { background: var(--addoz-cream-dark); color: var(--addoz-black-60); border-style: dashed; }
+.admin-status.status-in-review { background: var(--addoz-yellow); }

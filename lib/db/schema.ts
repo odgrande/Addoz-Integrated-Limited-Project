@@ -191,6 +191,16 @@ export const jobApplication = pgTable("job_application", {
   index("job_application_job_idx").on(table.jobId),
 ]);
 
+// Applicants an employer bookmarked to come back to (per employer user)
+export const savedApplicant = pgTable("saved_applicant", {
+  employerUserId: text("employer_user_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+  applicationId: uuid("application_id").references(() => jobApplication.id, { onDelete: "cascade" }).notNull(),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.employerUserId, table.applicationId] }),
+  index("saved_applicant_application_idx").on(table.applicationId),
+]);
+
 export const savedJob = pgTable("saved_job", {
   candidateId: uuid("candidate_id").references(() => candidateProfile.id).notNull(),
   jobId: uuid("job_id").references(() => job.id).notNull(),

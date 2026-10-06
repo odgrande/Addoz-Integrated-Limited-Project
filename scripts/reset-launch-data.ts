@@ -2,7 +2,8 @@
  * Start fresh for launch: removes every account except the one admin named by
  * ADMIN_EMAIL, plus all companies, jobs, applications, CVs, saved jobs, alerts,
  * notifications, messages, audit history, newsletter/contact entries and stored
- * files. Categories, locations and skills are kept. The kept admin is marked
+ * files. Categories, locations and skills are kept (except QA locations named
+ * "TEST", "TEST2", …). The kept admin is marked
  * email-verified (required to sign in) and stays signed in.
  *
  *   pnpm launch:reset            → dry run: shows what would be deleted
@@ -15,7 +16,7 @@ config({ path: ".env.local" })
 
 const TABLES = [
   "conversation_read", "message", "conversation", "notification", "audit_log",
-  "saved_job", "job_alert", "job_application", "resume", "stored_file", "job",
+  "saved_applicant", "saved_job", "job_alert", "job_application", "resume", "stored_file", "job",
   "employer_profile", "company", "candidate_profile",
   "newsletter_subscriber", "contact_message", "verification",
 ] as const
@@ -34,6 +35,7 @@ async function main() {
   console.log(`Keeping admin: ${keepEmail}\n\nWould delete:`)
   for (const name of tables) console.log(`  ${name.padEnd(22)} ${await count(`select count(*)::int c from "${name}"`)}`)
   console.log(`  ${"user (others)".padEnd(22)} ${await count(`select count(*)::int c from "user" where id <> '${keep.id}'`)}`)
+  console.log(`  ${"location (test)".padEnd(22)} ${await count(`select count(*)::int c from location where name ~* '^test[0-9]*$'`)}`)
 
   if (!process.argv.includes("--confirm")) {
     console.log("\nDry run only. Re-run with --confirm to delete.")
@@ -46,6 +48,7 @@ async function main() {
     sql`delete from account where "userId" <> ${keep.id}`,
     sql`delete from "user" where id <> ${keep.id}`,
     sql`update "user" set "emailVerified" = true, "updatedAt" = now() where id = ${keep.id}`,
+    sql`delete from location where name ~* '^test[0-9]*$'`,
   ])
   console.log("\nDone. The platform is empty and ready for launch.")
 }

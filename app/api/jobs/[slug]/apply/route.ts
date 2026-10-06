@@ -6,9 +6,11 @@ import { db } from "@/lib/db"
 import { candidateProfile, company, job, jobApplication, resume } from "@/lib/db/schema"
 import { GUEST_ACCOUNT_FOOTER, companyEmployerUserIds, notify } from "@/lib/notify"
 import { resolveGuestCandidate } from "@/features/applications/server"
-import { copyResumeToApplication, deleteResumeFromStorage, getResumeStorageErrorMessage, isResumeStorageConfigured, uploadApplicationFileToStorage, validateCvFile } from "@/lib/storage/r2"
+import { isExpired } from "@/features/jobs/listing"
+import { copyResumeToApplication, deleteResumeFromStorage, getResumeFileFromStorage, getResumeStorageErrorMessage, isResumeStorageConfigured, uploadApplicationFileToStorage, validateCvFile } from "@/lib/storage/r2"
+import { extractCvText } from "@/lib/cv-text"
 
-type ErrorCode = "INVALID" | "CV_REQUIRED" | "FORBIDDEN" | "NOT_FOUND" | "CLOSED" | "ALREADY_APPLIED" | "ACCOUNT_EXISTS" | "STORAGE" | "SERVER"
+type ErrorCode = "INVALID" | "CV_REQUIRED" | "PROFILE_CV_REQUIRED" | "FORBIDDEN" | "NOT_FOUND" | "CLOSED" | "ALREADY_APPLIED" | "ACCOUNT_EXISTS" | "STORAGE" | "SERVER"
 
 function fail(status: number, code: ErrorCode, error: string) {
   return Response.json({ error, code }, { status })
@@ -69,10 +71,10 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     if (!parsed.success) return fail(400, "INVALID", parsed.error.issues[0]?.message ?? "Check your application details.")
     const input = parsed.data
 
-    const [jobRecord] = await db.select({ id: job.id, status: job.status, title: job.title, companyId: job.companyId, companyName: company.name })
+    const [jobRecord] = await db.select({ id: job.id, status: job.status, deadline: job.deadline, title: job.title, companyId: job.companyId, companyName: company.name })
       .from(job).innerJoin(company, eq(job.companyId, company.id)).where(eq(job.slug, slug)).limit(1)
     if (!jobRecord) return fail(404, "NOT_FOUND", "That role is no longer available.")
-    if (jobRecord.status !== "Active") return fail(410, "CLOSED", "This role is no longer accepting applications.")
+    if (jobRecord.status !== "Active" || isExpired(jobRecord.deadline)) return fail(410, "CLOSED", "This role is no longer accepting applications.")
     if (!isResumeStorageConfigured()) {
       console.error("[apply] " + getResumeStorageErrorMessage())
       return fail(503, "STORAGE", "CV uploads are temporarily unavailable. Please try again shortly.")
@@ -91,6 +93,9 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
       candidateId = profile.id
       candidateUserId = session.user.id
       email = session.user.email.toLowerCase()
+      // Registered candidates keep a CV on their profile; it's what employers see first
+      const [onFile] = await db.select({ id: resume.id }).from(resume).where(eq(resume.candidateId, profile.id)).limit(1)
+      if (!onFile) return fail(400, "PROFILE_CV_REQUIRED", "Add a CV to your profile to apply.")
     } else {
       const resolved = await resolveGuestCandidate(input.email, input.name)
       if (!resolved.ok) {
@@ -112,18 +117,21 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     const applicationReference = `${guest ? "GUEST" : "APP"}-${crypto.randomBytes(10).toString("hex")}`
     const upload = form.get("cv")
     let cv: { key: string; fileName: string; mimeType: string | null; fileSize: string | null }
+    let cvText = ""
     if (upload instanceof File && upload.size > 0) {
       const problem = validateCvFile(upload)
       if (problem) return fail(400, "CV_REQUIRED", problem)
       const stored = await uploadApplicationFileToStorage({ applicationKey: applicationReference, fileName: upload.name, file: upload })
       uploadedKey = stored.key
       cv = { key: stored.key, fileName: upload.name, mimeType: stored.mimeType, fileSize: String(upload.size) }
+      cvText = await extractCvText(upload, upload.name, upload.type)
     } else if (!guest && input.useProfileResume === "true") {
       const [current] = await db.select().from(resume).where(eq(resume.candidateId, candidateId)).orderBy(desc(resume.uploadedAt)).limit(1)
       if (!current?.storageKey) return fail(400, "CV_REQUIRED", "Your profile has no CV on file. Upload one for this application.")
       const copied = await copyResumeToApplication({ applicationKey: applicationReference, storageKey: current.storageKey, fileName: current.fileName })
       uploadedKey = copied.key
       cv = { key: copied.key, fileName: current.fileName, mimeType: current.mimeType, fileSize: current.fileSize }
+      cvText = await getResumeFileFromStorage(current.storageKey).then(file => extractCvText(file.body, current.fileName, current.mimeType ?? file.contentType)).catch(() => "")
     } else {
       return fail(400, "CV_REQUIRED", "Attach your CV (PDF, Word, RTF or TXT).")
     }
@@ -137,7 +145,8 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
         guestPhone: input.phone || null,
         coverLetter: input.coverLetter || null,
         applicationReference,
-        candidateSnapshot: JSON.stringify({ name: input.name, email, phone: input.phone || null, coverLetter: input.coverLetter || null, source: guest ? "guest" : "candidate", appliedAt: new Date().toISOString() }),
+        // cvText powers the employer's match score for this application
+        candidateSnapshot: JSON.stringify({ name: input.name, email, phone: input.phone || null, coverLetter: input.coverLetter || null, source: guest ? "guest" : "candidate", appliedAt: new Date().toISOString(), cvText }),
         cvFileName: cv.fileName,
         cvStorageKey: cv.key,
         cvMimeType: cv.mimeType,

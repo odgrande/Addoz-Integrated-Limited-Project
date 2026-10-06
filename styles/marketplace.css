@@ -307,3 +307,4 @@
 .apply-cv-choice { display: grid; gap: var(--sp-2); margin-bottom: var(--sp-3); }
 .apply-cv-choice small { color: var(--addoz-black-60); font-weight: 500; }
 .job-preview-banner { margin: 0 0 var(--sp-4); padding: var(--sp-3) var(--sp-4); border: 2px solid var(--addoz-black); border-radius: var(--radius-md, 12px); background: var(--addoz-yellow); font-size: var(--text-sm); }
+.apply-needs-cv > svg { color: var(--addoz-purple); }

@@ -1,8 +1,20 @@
 import Link from "next/link"
 import { headers } from "next/headers"
-import { ArrowLeft, FileText } from "lucide-react"
-import { StageSelect } from "@/features/employers/components/employer-ui"
-import { getEmployerApplicants, getEmployerJob } from "@/features/employers/queries"
-import { MessageButton } from "@/features/messages/components/messages-ui"
+import { ArrowLeft } from "lucide-react"
+import { ApplicantReview } from "@/features/employers/components/applicant-review"
+import { getEmployerApplicants, getEmployerJob, getSavedApplicationIds } from "@/features/employers/queries"
+import { displayStatus } from "@/features/jobs/listing"
 
-export default async function EmployerJobApplicantsPage({ params }: { params: Promise<{ id: string }> }) { const id = (await params).id; const requestHeaders = await headers(); const [job, applicants] = await Promise.all([getEmployerJob(requestHeaders, id), getEmployerApplicants(requestHeaders, id)]); return <main className="employer-page"><header className="app-page-header"><Link className="text-link" href="/employer/jobs"><ArrowLeft size={15} aria-hidden="true" />Back to jobs</Link><div><p className="app-eyebrow">Applicants</p><h1>{job.job.title}</h1><p className="app-page-lead">Review candidates with only the information needed for this hiring step.</p></div></header>{applicants.length ? <section className="employer-panel employer-table-wrap"><table className="employer-table"><thead><tr><th>Candidate</th><th>Application</th><th>Resume</th><th>Stage</th></tr></thead><tbody>{applicants.map(item => <tr key={item.id}><td data-label="Candidate" className="cell-primary"><strong>{item.candidateName}</strong><small><a className="inline-link" href={`mailto:${item.candidateEmail}`}>{item.candidateEmail}</a>{item.candidatePhone ? ` · ${item.candidatePhone}` : ""}</small><small>{item.headline ?? "No headline"} · {item.locationName ?? "Location not set"}</small></td><td data-label="Application"><span>{new Date(item.appliedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</span>{item.coverLetter && <small className="employer-cover-letter">{item.coverLetter}</small>}</td><td data-label="Resume">{item.resumeUrl ? <a className="inline-link" href={item.resumeUrl}><FileText size={15} aria-hidden="true" />{item.resumeFileName ?? "View resume"}</a> : "Not attached"}</td><td data-label="Stage"><StageSelect applicationId={item.id} initial={item.stage} /><MessageButton area="employer" applicationId={item.id} label="Message" /></td></tr>)}</tbody></table></section> : <section className="employer-panel employer-empty"><h2>No applicants yet</h2><p>Applications for this role will appear here after it is published.</p></section>}</main> }
+export default async function EmployerJobApplicantsPage({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id
+  const requestHeaders = await headers()
+  const [record, applicants, savedIds] = await Promise.all([getEmployerJob(requestHeaders, id), getEmployerApplicants(requestHeaders, id), getSavedApplicationIds(requestHeaders)])
+  const job = record.job
+  const status = displayStatus(job.status, job.deadline)
+  return <main className="employer-page">
+    <header className="app-page-header"><Link className="text-link" href="/employer/jobs"><ArrowLeft size={15} aria-hidden="true" />Back to jobs</Link><div><p className="app-eyebrow">Applicants · {status}{job.status === "Active" && job.deadline ? ` · ${status === "Expired" ? "ended" : "ends"} ${new Date(job.deadline).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : ""}</p><h1>{job.title}</h1><p className="app-page-lead">{applicants.length} {applicants.length === 1 ? "applicant" : "applicants"}{job.experience ? ` · needs ${job.experience}` : ""}{job.skills?.length ? ` · skills: ${job.skills.join(", ")}` : ""}</p></div></header>
+    {applicants.length
+      ? <ApplicantReview jobSkills={job.skills ?? []} savedIds={savedIds} applicants={applicants.map(item => ({ id: item.id, candidateName: item.candidateName, candidateEmail: item.candidateEmail, candidatePhone: item.candidatePhone, headline: item.headline, locationName: item.locationName, stage: item.stage, appliedAt: new Date(item.appliedAt).toISOString(), coverLetter: item.coverLetter, resumeFileName: item.resumeFileName, resumeUrl: item.resumeUrl, match: item.match }))} />
+      : <section className="employer-panel employer-empty"><h2>No applicants yet</h2><p>Applications for this role will appear here, ranked by how well each candidate matches the job.</p></section>}
+  </main>
+}

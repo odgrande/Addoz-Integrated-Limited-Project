@@ -4,6 +4,7 @@ import { and, desc, eq, ilike } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { candidateProfile, category, company, job, jobAlert, jobApplication, location, notification, resume, savedJob, user } from "@/lib/db/schema"
+import { liveJob } from "@/features/jobs/live"
 
 export class CandidateAuthError extends Error {
   constructor() {
@@ -84,7 +85,7 @@ export async function getCandidateOverview(headers: Headers) {
     .innerJoin(company, eq(job.companyId, company.id))
     .leftJoin(location, eq(job.locationId, location.id))
     .leftJoin(category, eq(job.categoryId, category.id))
-    .where(eq(job.status, "Active"))
+    .where(liveJob())
     .orderBy(desc(job.featured), desc(job.postedAt))
     .limit(4)
 
@@ -213,7 +214,7 @@ export async function getCandidateRecommendations(headers: Headers, query?: stri
     .innerJoin(company, eq(job.companyId, company.id))
     .leftJoin(location, eq(job.locationId, location.id))
     .leftJoin(category, eq(job.categoryId, category.id))
-    .where(query ? and(eq(job.status, "Active"), ilike(job.title, `%${query}%`)) : eq(job.status, "Active"))
+    .where(query ? and(liveJob(), ilike(job.title, `%${query}%`)) : liveJob())
     .orderBy(desc(job.postedAt))
     .limit(12)
 }

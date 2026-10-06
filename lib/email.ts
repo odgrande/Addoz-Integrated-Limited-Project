@@ -7,7 +7,7 @@
  * Development without a key prints the message (and its code/link) to the
  * server console. Production without a key logs an error; nothing is sent.
  */
-export type EmailMessage = { to: string; subject: string; text: string; html: string }
+export type EmailMessage = { to: string; subject: string; text: string; html: string; /** Replies go here (e.g. the employer) instead of the ADDOZ sender. */ replyTo?: { email: string; name?: string } }
 
 function parseSender(from: string) {
   const match = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/)
@@ -42,12 +42,12 @@ export async function sendEmail(message: EmailMessage) {
     ? await fetch("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": process.env.BREVO_API_KEY!.trim(), "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ sender: parseSender(from), to: [{ email: message.to }], subject: message.subject, htmlContent: message.html, textContent: message.text }),
+        body: JSON.stringify({ sender: parseSender(from), to: [{ email: message.to }], subject: message.subject, htmlContent: message.html, textContent: message.text, ...(message.replyTo ? { replyTo: message.replyTo } : {}) }),
       })
     : await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${process.env.RESEND_API_KEY!.trim()}`, "content-type": "application/json" },
-        body: JSON.stringify({ from, to: [message.to], subject: message.subject, text: message.text, html: message.html }),
+        body: JSON.stringify({ from, to: [message.to], subject: message.subject, text: message.text, html: message.html, ...(message.replyTo ? { reply_to: message.replyTo.email } : {}) }),
       })
   if (!response.ok) {
     console.error(`[email] ${provider} rejected the message (${response.status}): ${await response.text().catch(() => "")}`)
@@ -70,6 +70,22 @@ export function actionEmail({ to, subject, greeting, body, actionLabel, actionUr
 <p style="margin:0 0 24px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;background:#800cb6;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">${escapeHtml(actionLabel)}</a></p>
 <p style="margin:0;color:#5c5f66;font-size:13px;line-height:1.6">${escapeHtml(footer)}</p></td></tr></table></body></html>`
   return { to, subject, text, html }
+}
+
+/** A personal note from an employer to an applicant, sent by ADDOZ with replies going to the employer. */
+export function employerEmail({ to, subject, candidateName, employerName, companyName, jobTitle, body, replyTo }: { to: string; subject: string; candidateName: string; employerName: string; companyName: string; jobTitle: string; body: string; replyTo: { email: string; name?: string } }): EmailMessage {
+  const intro = `${employerName} at ${companyName} sent you this message about your application for ${jobTitle}.`
+  const footer = `Reply to this email to answer ${employerName} directly. Sent via ADDOZ.`
+  const text = `Hi ${candidateName},\n\n${intro}\n\n${body}\n\n${footer}`
+  const paragraphs = body.split(/\n{2,}/).map(part => `<p style="margin:0 0 14px;line-height:1.6;white-space:pre-wrap">${escapeHtml(part)}</p>`).join("")
+  const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#f6f1e7;font-family:Arial,Helvetica,sans-serif;color:#0d1119">
+<table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;padding:32px">
+<tr><td><p style="font-weight:800;font-size:20px;margin:0 0 24px">ADDOZ</p>
+<p style="margin:0 0 12px">Hi ${escapeHtml(candidateName)},</p>
+<p style="margin:0 0 20px;color:#5c5f66;line-height:1.6">${escapeHtml(intro)}</p>
+<div style="border-left:3px solid #800cb6;padding-left:16px;margin:0 0 24px">${paragraphs}</div>
+<p style="margin:0;color:#5c5f66;font-size:13px;line-height:1.6">${escapeHtml(footer)}</p></td></tr></table></body></html>`
+  return { to, subject, text, html, replyTo }
 }
 
 /** The 6-digit email verification code. */
