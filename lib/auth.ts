@@ -46,10 +46,13 @@ export const auth = betterAuth({
   baseURL: {
     allowedHosts,
     fallback: canonicalUrl,
-    // Production: the request's own scheme (HTTPS on Vercel, http on loopback).
-    // Development: always http so cookie names match on localhost, LAN
+    // Production behind an HTTPS address: always https. Netlify hands route
+    // handlers an http:// request URL while the proxy only sees headers, so
+    // "auto" gave them different cookie names and dashboards bounced to sign-in.
+    // Otherwise the request's own scheme in production (http on loopback), and
+    // always http in development so cookie names match on localhost, LAN
     // addresses and tunnels alike.
-    protocol: isProduction ? "auto" : "http",
+    protocol: !isProduction ? "http" : canonicalUrl?.startsWith("https://") ? "https" : "auto",
   },
   database: drizzleAdapter(db, {
     provider: "pg",
