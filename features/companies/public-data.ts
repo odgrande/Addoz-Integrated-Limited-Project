@@ -7,21 +7,10 @@ import { category, company, job, location } from "@/lib/db/schema"
 import { searchMarketplace } from "@/features/jobs/public-data"
 import type { Company } from "./data"
 import { liveJob } from "@/features/jobs/live"
+import { markFor, safeLogo, toneFor } from "./brand"
 
-const tones: Company["tone"][] = ["purple", "yellow", "orange", "black"]
 
-function toneFor(slug: string) {
-  let hash = 0
-  for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  return tones[hash % tones.length]!
-}
-
-function markFor(name: string) {
-  const words = name.replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean)
-  return (words.length > 1 ? `${words[0]![0]}${words[1]![0]}` : (words[0] ?? "?").slice(0, 2)).toUpperCase()
-}
-
-type CompanyRow = { slug: string; name: string; industry: string | null; description: string | null; companySize: string | null; website: string | null; locationSlug: string | null; locationName: string | null; openRoles: number; topCategory: string | null }
+type CompanyRow = { slug: string; name: string; logo: string | null; industry: string | null; description: string | null; companySize: string | null; website: string | null; locationSlug: string | null; locationName: string | null; openRoles: number; topCategory: string | null }
 
 function toCompany(row: CompanyRow): Company {
   const sample = row.name.toLowerCase().startsWith("sample")
@@ -33,6 +22,7 @@ function toCompany(row: CompanyRow): Company {
     locationName: row.locationName ?? undefined,
     mark: markFor(row.name),
     tone: toneFor(row.slug),
+    logo: safeLogo(row.logo),
     size: row.companySize || "Size not shared",
     overview: row.description || `${row.name} is hiring on ADDOZ.`,
     website: row.website ?? undefined,
@@ -47,6 +37,7 @@ export const listPublicCompanies = cache(async (): Promise<Company[]> => {
   const rows = await db.select({
     slug: company.slug,
     name: company.name,
+    logo: company.logo,
     industry: company.industry,
     description: company.description,
     companySize: company.companySize,

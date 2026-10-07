@@ -17,6 +17,8 @@ export type Company = {
   locationName?: string
   mark: string
   tone: "purple" | "yellow" | "orange" | "black"
+  /** Uploaded logo (live companies); initials on `tone` otherwise. */
+  logo?: string
   size: string
   overview: string
   website?: string

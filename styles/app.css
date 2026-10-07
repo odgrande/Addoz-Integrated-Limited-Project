@@ -193,3 +193,4 @@
 }
 /* A trailing arrow icon stays with its link text instead of wrapping onto its own line */
 .inline-link:has(> svg:last-child) { white-space: nowrap; }
+.msg-bubble.is-pending { opacity: .65; }

@@ -5,6 +5,7 @@ import type { Job } from "@/features/jobs/data"
 import { JobRow } from "@/features/jobs/components/job-card"
 import type { Company } from "../data"
 import { CompanyCard } from "./company-card"
+import { CompanyMark } from "./company-mark"
 
 /**
  * Company profile (Directive 009): a job-detail-style header (large mark + name),
@@ -21,7 +22,7 @@ export function CompanyDetail({ company, roles, related }: { company: Company; r
     <header className="page-section dc-company-hero">
       <Breadcrumbs items={[{ label: "Companies", href: "/companies" }, { label: company.name }]} />
       <div className="dc-company-hero-row">
-        <span className={`company-mark tone-${company.tone} is-large`} aria-hidden="true">{company.mark}</span>
+        <CompanyMark className="company-mark is-large" mark={company.mark} tone={company.tone} logo={company.logo} />
         <div className="dc-company-hero-id">
           <h1 className="t-h1" data-reveal>{company.name}</h1>
           <p className="dc-company-hero-meta">{[company.industry, place].filter(Boolean).join(" · ")}</p>

@@ -10,6 +10,9 @@ import { getArea } from "@/features/locations/data"
 import type { Job } from "../data"
 import { captureJobCard } from "../transition"
 import { SaveJobButton } from "./save-job-button"
+import { CompanyMark } from "@/features/companies/components/company-mark"
+
+const sampleTone = (color: Job["color"]) => color === "blue" ? "purple" : color
 
 /**
  * Job card (Directive 008 card level 2 — "frame"): identity → title → meta → salary.
@@ -25,7 +28,7 @@ export function JobCard({ job, flip = true, className }: { job: Job; flip?: bool
   }
   return <article className={cn("job-card", className)} data-flip-id={flip ? `card-${job.slug}` : undefined}>
     <div className="job-card-head">
-      <span className={cn("job-mark", `mark-${job.color}`)} data-flip-id={`job-mark-${job.slug}`} aria-hidden="true">{job.mark}</span>
+      <CompanyMark className="job-mark" mark={job.mark} tone={job.tone ?? sampleTone(job.color)} logo={job.logo} flipId={`job-mark-${job.slug}`} />
       <p className="job-card-company"><span>{job.companyName ?? company?.name ?? "Employer"}</span><span>{[job.locationName ?? area?.name, job.workplace].filter(Boolean).join(" · ")}</span></p>
       <SaveJobButton slug={job.slug} title={job.title} saved={job.saved} />
     </div>
@@ -47,7 +50,7 @@ export function JobRow({ job }: { job: Job }) {
     if (row) captureJobCard(row, job.slug)
   }
   return <li className="job-row">
-    <span className={cn("job-mark", `mark-${job.color}`)} data-flip-id={`job-mark-${job.slug}`} aria-hidden="true">{job.mark}</span>
+    <CompanyMark className="job-mark" mark={job.mark} tone={job.tone ?? sampleTone(job.color)} logo={job.logo} flipId={`job-mark-${job.slug}`} />
     <div className="job-row-main">
       <Link href={`/jobs/${job.slug}`} onClick={open} className="job-row-title"><strong data-flip-id={`job-title-${job.slug}`}>{job.title}</strong></Link>
       <span className="job-row-meta">{[job.companyName ?? company?.name, job.locationName ?? area?.name, job.type, job.workplace].filter(Boolean).join(" · ")}</span>

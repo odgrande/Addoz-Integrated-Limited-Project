@@ -9,6 +9,7 @@ import { db } from "@/lib/db"
 import { candidateProfile, category, company, employerProfile, job, jobApplication, location, resume, savedJob } from "@/lib/db/schema"
 import type { Job } from "@/features/jobs/data"
 import { liveJob } from "@/features/jobs/live"
+import { markFor, safeLogo, toneFor } from "@/features/companies/brand"
 
 export const MARKETPLACE_PAGE_SIZE = 9
 
@@ -32,7 +33,7 @@ const salaryBands: Record<string, { min: number; max: number }> = {
   "500-plus": { min: 500_001, max: Number.MAX_SAFE_INTEGER },
 }
 
-function mapRecord(record: { job: typeof job.$inferSelect; companyName: string; companySlug: string; companyIndustry: string | null; companyDescription: string | null; locationName: string; locationSlug: string; categoryName: string; categorySlug: string }): Job {
+function mapRecord(record: { job: typeof job.$inferSelect; companyName: string; companySlug: string; companyLogo: string | null; companyIndustry: string | null; companyDescription: string | null; locationName: string; locationSlug: string; categoryName: string; categorySlug: string }): Job {
   return {
     id: record.job.id,
     slug: record.job.slug,
@@ -51,7 +52,10 @@ function mapRecord(record: { job: typeof job.$inferSelect; companyName: string; 
     deadline: (record.job.deadline ?? new Date(record.job.postedAt.getTime() + 30 * 86_400_000)).toISOString().slice(0, 10),
     featured: Boolean(record.job.featured),
     apply: record.job.apply === "email" ? "email" : "addoz",
-    mark: record.job.mark ?? "•",
+    // The employer's mark: their logo, or initials on their colour (same company → same colour)
+    mark: markFor(record.companyName),
+    tone: toneFor(record.companySlug),
+    logo: safeLogo(record.companyLogo) ?? null,
     color: record.job.color === "yellow" || record.job.color === "orange" ? record.job.color : "blue",
     summary: record.job.summary ?? "",
     responsibilities: record.job.responsibilities ?? [],
@@ -124,7 +128,7 @@ function withViewerState<T extends Job>(jobs: T[], state: ViewerJobState) {
 }
 
 function baseQuery() {
-  return db.select({ job, companyName: company.name, companySlug: company.slug, companyIndustry: company.industry, companyDescription: company.description, locationName: location.name, locationSlug: location.slug, categoryName: category.name, categorySlug: category.slug }).from(job)
+  return db.select({ job, companyName: company.name, companySlug: company.slug, companyLogo: company.logo, companyIndustry: company.industry, companyDescription: company.description, locationName: location.name, locationSlug: location.slug, categoryName: category.name, categorySlug: category.slug }).from(job)
     .innerJoin(company, and(eq(job.companyId, company.id), eq(company.active, true)))
     .innerJoin(location, and(eq(job.locationId, location.id), eq(location.active, true)))
     .innerJoin(category, and(eq(job.categoryId, category.id), eq(category.active, true)))
@@ -180,7 +184,7 @@ export const getPublicJob = cache(async (slug: string) => {
     getViewer(),
   ])
   const current = withViewerState([mapRecord(record)], jobState)[0]!
-  return { job: current, viewer, related: withViewerState(relatedRecords.map(mapRecord), jobState), company: { name: record.companyName, industry: record.companyIndustry, overview: record.companyDescription, mark: record.companyName.slice(0, 1), tone: "purple" }, location: { name: record.locationName, stateName: null }, category: { name: record.categoryName, slug: record.categorySlug } }
+  return { job: current, viewer, related: withViewerState(relatedRecords.map(mapRecord), jobState), company: { name: record.companyName, industry: record.companyIndustry, overview: record.companyDescription, mark: markFor(record.companyName), tone: toneFor(record.companySlug), logo: safeLogo(record.companyLogo) ?? null }, location: { name: record.locationName, stateName: null }, category: { name: record.categoryName, slug: record.categorySlug } }
 })
 
 export async function getMarketplaceTaxonomy() {
@@ -209,7 +213,7 @@ export const getLiveJobCounts = cache(async () => {
 export async function getJobPreview(slug: string) {
   const viewer = await getViewer()
   if (viewer.role !== "admin" && viewer.role !== "employer") return null
-  const [record] = await db.select({ job, companyName: company.name, companySlug: company.slug, companyIndustry: company.industry, companyDescription: company.description, locationName: location.name, locationSlug: location.slug, categoryName: category.name, categorySlug: category.slug }).from(job)
+  const [record] = await db.select({ job, companyName: company.name, companySlug: company.slug, companyLogo: company.logo, companyIndustry: company.industry, companyDescription: company.description, locationName: location.name, locationSlug: location.slug, categoryName: category.name, categorySlug: category.slug }).from(job)
     .innerJoin(company, eq(job.companyId, company.id))
     .innerJoin(location, eq(job.locationId, location.id))
     .innerJoin(category, eq(job.categoryId, category.id))
@@ -220,5 +224,5 @@ export async function getJobPreview(slug: string) {
     const [owner] = session ? await db.select({ companyId: employerProfile.companyId }).from(employerProfile).where(eq(employerProfile.userId, session.user.id)).limit(1) : []
     if (!owner || owner.companyId !== record.job.companyId) return null
   }
-  return { job: { ...mapRecord(record), applied: false }, viewer, related: [] as Job[], status: record.job.status ?? "Draft", company: { name: record.companyName, industry: record.companyIndustry, overview: record.companyDescription, mark: record.companyName.slice(0, 1), tone: "purple" }, location: { name: record.locationName, stateName: null }, category: { name: record.categoryName, slug: record.categorySlug } }
+  return { job: { ...mapRecord(record), applied: false }, viewer, related: [] as Job[], status: record.job.status ?? "Draft", company: { name: record.companyName, industry: record.companyIndustry, overview: record.companyDescription, mark: markFor(record.companyName), tone: toneFor(record.companySlug), logo: safeLogo(record.companyLogo) ?? null }, location: { name: record.locationName, stateName: null }, category: { name: record.categoryName, slug: record.categorySlug } }
 }

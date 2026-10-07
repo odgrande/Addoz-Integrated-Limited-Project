@@ -56,6 +56,9 @@ export type Job = {
   apply: "addoz" | "email"
   mark: string
   color: "yellow" | "blue" | "orange"
+  /** Employer's colour and uploaded logo (live jobs); sample jobs fall back to `color`. */
+  tone?: "purple" | "yellow" | "orange" | "black"
+  logo?: string | null
   summary: string
   responsibilities: string[]
   requirements: string[]

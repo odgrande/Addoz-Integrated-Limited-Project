@@ -6,7 +6,7 @@ import { ArrowLeft, LifeBuoy, LoaderCircle, MessageSquare, Send } from "lucide-r
 import { cn } from "@/lib/utils"
 
 type Conversation = { id: string; kind: "application" | "support"; subject: string; counterpart: string; preview: string | null; lastMessageAt: string; unread: boolean }
-type Thread = { id: string; kind: string; subject: string; messages: { id: string; body: string; createdAt: string; mine: boolean; sender: string }[] }
+type Thread = { id: string; kind: string; subject: string; messages: { id: string; body: string; createdAt: string; mine: boolean; sender: string; pending?: boolean }[] }
 type Area = "candidate" | "employer" | "admin"
 
 const POLL_MS = 15_000
@@ -34,6 +34,8 @@ export function MessagesWorkspace({ area, initialId }: { area: Area; initialId?:
   const [error, setError] = useState("")
   const [filter, setFilter] = useState<"all" | "application" | "support">("all")
   const end = useRef<HTMLDivElement>(null)
+  // A ref, not state: it blocks a second send in the same instant (double tap, Ctrl+Enter)
+  const sending = useRef(false)
 
   const loadList = useCallback(async () => {
     try { setConversations((await json<{ conversations: Conversation[] }>("/api/messages")).conversations) }
@@ -61,15 +63,23 @@ export function MessagesWorkspace({ area, initialId }: { area: Area; initialId?:
 
   async function send(event: FormEvent) {
     event.preventDefault()
-    if (!activeId || !draft.trim()) return
+    const text = draft.trim()
+    if (!activeId || !text || sending.current) return
+    sending.current = true
     setBusy(true)
     setError("")
+    // Show it straight away; the real message replaces it once saved
+    const tempId = `pending-${Date.now()}`
+    setDraft("")
+    setThread(current => current && current.id === activeId ? { ...current, messages: [...current.messages, { id: tempId, body: text, createdAt: new Date().toISOString(), mine: true, sender: "You", pending: true }] } : current)
     try {
-      await json(`/api/messages/${activeId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: draft }) })
-      setDraft("")
+      await json(`/api/messages/${activeId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: text }) })
       await Promise.all([loadThread(activeId), loadList()])
-    } catch (err) { setError(err instanceof Error ? err.message : "Your message wasn't sent.") }
-    finally { setBusy(false) }
+    } catch (err) {
+      setThread(current => current ? { ...current, messages: current.messages.filter(item => item.id !== tempId) } : current)
+      setDraft(text)
+      setError(err instanceof Error ? err.message : "Your message wasn't sent.")
+    } finally { sending.current = false; setBusy(false) }
   }
 
   async function contactSupport() {
@@ -121,8 +131,8 @@ export function MessagesWorkspace({ area, initialId }: { area: Area; initialId?:
               </header>
               <div className="msg-messages" aria-live="polite">
                 {thread.messages.length === 0 && <p className="msg-empty-inline">No messages yet — say hello.</p>}
-                {thread.messages.map(item => <div key={item.id} className={cn("msg-bubble", item.mine && "is-mine")}>
-                  <p className="msg-meta"><strong>{item.mine ? "You" : item.sender}</strong> · <time>{when(item.createdAt)}</time></p>
+                {thread.messages.map(item => <div key={item.id} className={cn("msg-bubble", item.mine && "is-mine", item.pending && "is-pending")}>
+                  <p className="msg-meta"><strong>{item.mine ? "You" : item.sender}</strong> · {item.pending ? <span>Sending…</span> : <time>{when(item.createdAt)}</time>}</p>
                   <p className="msg-body">{item.body}</p>
                 </div>)}
                 <div ref={end} />

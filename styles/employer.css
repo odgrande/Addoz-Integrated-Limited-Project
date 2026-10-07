@@ -140,3 +140,7 @@
 .match-band-tab strong { color: var(--addoz-black); }
 .match-band-tab.band-top strong { color: var(--addoz-white); }
 .match-band-tab.is-active.band-all strong { background: var(--addoz-yellow); }
+/* Company logo uploader */
+.logo-uploader-row { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
+.logo-uploader-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; flex: 1 1 14rem; }
+.logo-uploader-actions .field-hint { flex-basis: 100%; }

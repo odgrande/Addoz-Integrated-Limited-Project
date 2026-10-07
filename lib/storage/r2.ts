@@ -224,3 +224,25 @@ export async function deleteResumeFromStorage(key: string) {
 export async function getResumeFileFromStorage(key: string) {
   return requireDriver().get(key)
 }
+
+// --- Company logos (public images, served by /api/company-logo/<companyId>/<version>) ---
+
+export const MAX_LOGO_FILE_SIZE = 1024 * 1024
+
+/** The image type from the file's first bytes (PNG, JPEG, WebP), never trusting the name or browser. */
+export function sniffLogoType(bytes: Uint8Array): "image/png" | "image/jpeg" | "image/webp" | null {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png"
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "image/jpeg"
+  if (String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP") return "image/webp"
+  return null
+}
+
+export function companyLogoKey(companyId: string, version: string) {
+  return `logos/${companyId}/${version}`
+}
+
+export async function uploadCompanyLogo({ companyId, version, bytes, contentType }: { companyId: string; version: string; bytes: Uint8Array; contentType: string }) {
+  const key = companyLogoKey(companyId, version)
+  await requireDriver().put(key, new Blob([bytes as BlobPart], { type: contentType }), contentType, { companyId })
+  return key
+}

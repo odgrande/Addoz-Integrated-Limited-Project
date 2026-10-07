@@ -1,6 +1,7 @@
 import "server-only"
 
 import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm"
+import { after } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { candidateProfile, company, conversation, conversationRead, employerProfile, job, jobApplication, message, user } from "@/lib/db/schema"
@@ -126,10 +127,22 @@ export async function sendMessage(viewer: MessageViewer, id: string, body: strin
   // Admins may read application threads for moderation but don't post into them
   if (thread.kind === "application" && viewer.role === "admin") throw new MessagesAccessError()
   const now = new Date()
+  // A double tap or a retried request must not post the same message twice
+  const [recent] = await db.select({ id: message.id, body: message.body, createdAt: message.createdAt }).from(message)
+    .where(and(eq(message.conversationId, id), eq(message.senderUserId, viewer.userId)))
+    .orderBy(desc(message.createdAt)).limit(1)
+  if (recent && recent.body === body && now.getTime() - recent.createdAt.getTime() < 30_000) return { id: recent.id, duplicate: true }
+
   const [created] = await db.insert(message).values({ conversationId: id, senderUserId: viewer.userId, body, createdAt: now }).returning({ id: message.id })
   await db.update(conversation).set({ lastMessageAt: now }).where(eq(conversation.id, id))
   await markRead(id, viewer.userId)
 
+  // Notifications (and their emails) go out after the response, so sending feels instant
+  after(() => notifyMessageRecipients(viewer, thread, id, body, options).catch(error => console.error("[messages] notifications failed", error)))
+  return { id: created!.id, duplicate: false }
+}
+
+async function notifyMessageRecipients(viewer: MessageViewer, thread: LoadedConversation, id: string, body: string, options: { emailRecipients?: boolean }) {
   const recipients = await recipientsFor(thread, viewer.userId, viewer.role)
   const senderLabel = viewer.role === "admin" ? "The ADDOZ team" : viewer.name
   const area = (role: "candidate" | "employer" | "admin") => role === "admin" ? "/admin" : `/${role}`
@@ -152,7 +165,6 @@ export async function sendMessage(viewer: MessageViewer, id: string, body: strin
     // Skipped when the sender is also emailing the same text directly
     email: options.emailRecipients === false ? undefined : { subject: `${senderLabel} sent you a message on ADDOZ`, actionLabel: "Read and reply", footer: href.startsWith("/candidate") ? GUEST_ACCOUNT_FOOTER : undefined },
   })))
-  return { id: created!.id }
 }
 
 /** Find or open the thread for one application (employer of the hiring company, or the applicant). */

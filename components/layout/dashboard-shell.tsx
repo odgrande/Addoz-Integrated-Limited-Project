@@ -120,7 +120,7 @@ export function DashboardShell({ app, children, unread: initialUnread = 0, user 
           <button type="button" className="app-icon-button app-menu" onClick={() => setOpen(true)} aria-label="Open navigation" aria-expanded={open}><Menu size={20} /></button>
           <Link href={config.home} className="app-topbar-brand" aria-label={`ADDOZ ${config.name} home`}><Logo /><span className="app-badge">{config.name}</span></Link>
           <div className="app-topbar-end">
-            <Link href={`${config.home}/${app === "admin" ? "settings" : "notifications"}`} className="app-icon-button app-bell" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
+            <Link href={app === "admin" ? "/admin/settings" : `/${app}/notifications`} className="app-icon-button app-bell" aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
               <Bell size={18} />{unread > 0 && <span className="app-bell-dot" aria-hidden="true">{unread > 99 ? "99+" : unread}</span>}
             </Link>
             <span className="app-avatar app-avatar-top" title={config.user.name} aria-hidden="true">{config.user.initials}</span>

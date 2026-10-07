@@ -308,3 +308,10 @@
 .apply-cv-choice small { color: var(--addoz-black-60); font-weight: 500; }
 .job-preview-banner { margin: 0 0 var(--sp-4); padding: var(--sp-3) var(--sp-4); border: 2px solid var(--addoz-black); border-radius: var(--radius-md, 12px); background: var(--addoz-yellow); font-size: var(--text-sm); }
 .apply-needs-cv > svg { color: var(--addoz-purple); }
+/* Employer mark on jobs: initials on the company's colour, or their logo */
+.job-mark.tone-purple { background: var(--addoz-purple); color: var(--addoz-white); }
+.job-mark.tone-yellow { background: var(--addoz-yellow); color: var(--addoz-black); }
+.job-mark.tone-orange { background: var(--addoz-orange); color: var(--addoz-black); }
+.job-mark.tone-black { background: var(--addoz-black); color: var(--addoz-cream); }
+.job-mark.has-logo, .company-mark.has-logo { padding: 3px; overflow: hidden; background: var(--addoz-white); }
+.job-mark.has-logo img, .company-mark.has-logo img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: calc(var(--radius-md) - 3px); }

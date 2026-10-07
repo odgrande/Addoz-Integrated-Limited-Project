@@ -15,12 +15,13 @@ import { JobCard } from "./job-card"
 import { SaveJobButton } from "./save-job-button"
 import { ApplyFlow } from "@/features/applications/components/apply-flow"
 import type { Viewer } from "../public-data"
+import { CompanyMark } from "@/features/companies/components/company-mark"
 
 /**
  * Job detail (Directive 008): editorial header, scannable facts, calm reading column.
  * Arriving from a card, the mark and title fly in from where they were (Flip).
  */
-export function JobDetail({ job, viewer, related, companyOverride, locationOverride, categoryOverride, previewStatus }: { job: Job; viewer: Viewer; related: Job[]; previewStatus?: string; companyOverride?: { name: string; industry?: string | null; overview?: string | null; mark?: string | null; tone?: string | null }; locationOverride?: { name: string; stateName?: string | null }; categoryOverride?: { name: string; slug: string } }) {
+export function JobDetail({ job, viewer, related, companyOverride, locationOverride, categoryOverride, previewStatus }: { job: Job; viewer: Viewer; related: Job[]; previewStatus?: string; companyOverride?: { name: string; industry?: string | null; overview?: string | null; mark?: string | null; tone?: string | null; logo?: string | null }; locationOverride?: { name: string; stateName?: string | null }; categoryOverride?: { name: string; slug: string } }) {
   const root = useRef<HTMLElement>(null)
   const [barVisible, setBarVisible] = useState(false)
   const toast = useToast()
@@ -74,7 +75,7 @@ export function JobDetail({ job, viewer, related, companyOverride, locationOverr
       <div className="job-hero-grid">
         <div className="job-hero-main">
           <div className="job-hero-id">
-            <span className={`job-mark mark-${job.color} job-mark-large`} data-flip-id={`job-mark-${job.slug}`} aria-hidden="true">{job.mark}</span>
+            <CompanyMark className="job-mark job-mark-large" mark={job.mark} tone={job.tone ?? (job.color === "blue" ? "purple" : job.color)} logo={job.logo} flipId={`job-mark-${job.slug}`} />
             <p><strong>{company?.name}</strong><span>{[company?.industry, locationOverride?.name ?? area?.name].filter(Boolean).join(" · ")}</span></p>
           </div>
           <h1 data-flip-id={`job-title-${job.slug}`}>{job.title}</h1>
@@ -114,7 +115,7 @@ export function JobDetail({ job, viewer, related, companyOverride, locationOverr
           </dl>
         </section>
         {company && <section className="job-company" aria-labelledby="company-title">
-          <span className={`company-mark tone-${company.tone}`} aria-hidden="true">{company.mark}</span>
+          <CompanyMark className="company-mark" mark={company.mark ?? ""} tone={company.tone} logo={"logo" in company ? company.logo : undefined} />
           <h2 id="company-title">{company.name}</h2>
           <p>{company.overview}</p>
           {job.sample && <span className="sample-tag">Sample employer</span>}
