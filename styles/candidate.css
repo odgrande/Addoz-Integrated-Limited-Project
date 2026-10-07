@@ -21,7 +21,8 @@
 .candidate-job-list > li:first-child, .candidate-detail-list > li:first-child, .candidate-notification-list > li:first-child { padding-top: 0; }
 .candidate-job-list > li:last-child, .candidate-detail-list > li:last-child, .candidate-notification-list > li:last-child { padding-bottom: 0; border-bottom: 0; }
 .candidate-job-main { min-width: 0; flex: 1; }
-.candidate-job-main strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+/* Job titles wrap instead of being cut off with "…" (long titles were unreadable on phones) */
+.candidate-job-main strong { display: block; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .candidate-job-main a:hover strong { color: var(--addoz-purple); }
 .candidate-job-main small, .candidate-job-list time, .candidate-detail-list time { display: block; margin-top: .25rem; color: var(--addoz-black-40); font-size: var(--text-xs); }
 .candidate-save { display: inline-flex; align-items: center; gap: .35rem; flex: 0 0 auto; padding: .45rem .6rem; border: 1px solid var(--addoz-black); border-radius: var(--radius); background: transparent; color: var(--addoz-black); font: 750 var(--text-xs)/1 var(--font-addoz); }
@@ -71,7 +72,7 @@ textarea.input { min-height: 7rem; resize: vertical; }
 .candidate-error { align-items: flex-start; justify-content: center; min-height: 50vh; }
 @keyframes candidate-shimmer { to { background-position: -220% 0; } }
 @media (prefers-reduced-motion: reduce) { .candidate-skeleton { animation: none; } }
-@media (max-width: 480px) { .candidate-hero .app-page-actions, .candidate-hero .app-page-actions > * { width: 100%; } .candidate-detail-list > li time { width: 100%; margin-left: 3.25rem; } .candidate-row-actions { width: 100%; justify-content: flex-end; } }
+@media (max-width: 480px) { .candidate-hero .app-page-actions, .candidate-hero .app-page-actions > * { width: 100%; } .candidate-row-actions { width: 100%; justify-content: flex-end; } }
 /* Notification feed */
 .notification-feed { list-style: none; margin: 0; padding: 0; }
 .notification-feed > li { border-bottom: var(--border-light); }
@@ -91,3 +92,11 @@ textarea.input { min-height: 7rem; resize: vertical; }
 /* Heading links ("View all ↗") stay on one line; the heading text wraps instead */
 .panel-heading > a, .panel-heading > .inline-link { flex: 0 0 auto; white-space: nowrap; }
 .panel-heading > div { min-width: 0; }
+
+/* Application rows on phones: icon · title · status on the first row, actions and date below the title */
+@media (max-width: 640px) {
+  .candidate-detail-list > li:has(> .candidate-list-icon) { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; column-gap: var(--sp-3); row-gap: .5rem; align-items: start; }
+  .candidate-detail-list > li:has(> .candidate-list-icon) > .candidate-status { grid-column: 3; grid-row: 1; justify-self: end; }
+  .candidate-detail-list > li:has(> .candidate-list-icon) > :not(.candidate-list-icon, .candidate-job-main, .candidate-status) { grid-column: 2 / -1; justify-self: start; margin: 0; }
+  .candidate-detail-list > li:has(> .candidate-list-icon) time { width: auto; }
+}
