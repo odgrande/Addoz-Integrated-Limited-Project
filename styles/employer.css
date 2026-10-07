@@ -144,3 +144,7 @@
 .logo-uploader-row { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
 .logo-uploader-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; flex: 1 1 14rem; }
 .logo-uploader-actions .field-hint { flex-basis: 100%; }
+/* Company profile must be complete before jobs can be published */
+.company-incomplete { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; padding: var(--sp-4); border: 2px solid var(--addoz-black); border-radius: var(--radius-card); background: var(--addoz-yellow); color: var(--addoz-black); }
+.company-incomplete > svg { flex: 0 0 auto; }
+.company-incomplete p { flex: 1 1 18rem; margin: 0; font-size: var(--text-sm); line-height: 1.5; }

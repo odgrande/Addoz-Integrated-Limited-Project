@@ -5,6 +5,8 @@ import { adminUserIds, notify } from "@/lib/notify"
 import { company, employerProfile, job, notification, user } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, getEmployerApplicants, requireEmployer } from "@/features/employers/queries"
 import { deadlineFrom, listingDays } from "@/features/jobs/listing"
+import { getCompanyProfileMissing } from "@/features/employers/queries"
+import { listMissing } from "@/features/companies/completeness"
 
 const jobSchema = z.object({
   title: z.string().trim().min(2).max(160),
@@ -78,6 +80,11 @@ export async function POST(request: Request, context: { params: Promise<{ resour
       if (!profile.companyId) return Response.json({ error: "Complete your company profile first." }, { status: 409 })
       const parsed = jobSchema.safeParse({ ...body, responsibilities: parseList(body.responsibilities), requirements: parseList(body.requirements), skills: parseList(body.skills) })
       if (!parsed.success) return Response.json({ error: "Complete the required job fields.", fields: parsed.error.flatten().fieldErrors }, { status: 400 })
+      // Drafts are always fine; publishing (submitting for review) needs a complete company profile
+      if (parsed.data.status === "Active") {
+        const missing = await getCompanyProfileMissing(profile.companyId)
+        if (missing.length) return Response.json({ error: `Complete your company profile before posting jobs — add ${listMissing(missing)}.`, code: "COMPANY_INCOMPLETE", missing }, { status: 409 })
+      }
       const now = new Date()
       const slugBase = slugify(parsed.data.title)
       const slug = `${slugBase}-${Date.now().toString(36)}`

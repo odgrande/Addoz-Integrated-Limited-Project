@@ -5,7 +5,7 @@ import { after } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { candidateProfile, company, conversation, conversationRead, employerProfile, job, jobApplication, message, user } from "@/lib/db/schema"
-import { GUEST_ACCOUNT_FOOTER, adminUserIds, companyEmployerUserIds, notify } from "@/lib/notify"
+import { adminUserIds, companyEmployerUserIds, notify } from "@/lib/notify"
 
 export class MessagesAuthError extends Error { constructor() { super("Authentication required"); this.name = "MessagesAuthError" } }
 export class MessagesAccessError extends Error { constructor() { super("Conversation not found"); this.name = "MessagesAccessError" } }
@@ -162,8 +162,8 @@ async function notifyMessageRecipients(viewer: MessageViewer, thread: LoadedConv
     title: `New message: ${thread.subject}`,
     body: `${senderLabel}: ${snippet}`,
     href,
-    // Skipped when the sender is also emailing the same text directly
-    email: options.emailRecipients === false ? undefined : { subject: `${senderLabel} sent you a message on ADDOZ`, actionLabel: "Read and reply", footer: href.startsWith("/candidate") ? GUEST_ACCOUNT_FOOTER : undefined },
+    // In-app only (notification + red bell badge): emailing every chat message used up the
+    // daily email allowance. Employers can still choose to email an applicant directly.
   })))
 }
 

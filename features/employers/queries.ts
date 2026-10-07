@@ -7,6 +7,7 @@ import { category, candidateProfile, company, job, jobApplication, location, not
 
 import { employerStages } from "@/features/employers/stages"
 import { scoreApplicant } from "@/features/applications/matching"
+import { companyProfileMissing } from "@/features/companies/completeness"
 
 export class EmployerAuthError extends Error {
   constructor() {
@@ -127,6 +128,13 @@ export async function getEmployerApplicants(headers: Headers, jobId?: string, se
       { cvText: cvTextOf(snapshot), coverLetter: row.coverLetter, headline: row.headline, experience: row.experience },
     ),
   }))
+}
+
+/** What a company still needs before its jobs can go live (empty when complete). */
+export async function getCompanyProfileMissing(companyId: string | null | undefined) {
+  if (!companyId) return companyProfileMissing(null)
+  const [record] = await db.select({ name: company.name, industry: company.industry, locationId: company.locationId, companySize: company.companySize, description: company.description }).from(company).where(eq(company.id, companyId)).limit(1)
+  return companyProfileMissing(record)
 }
 
 /** One applicant of the employer's company (throws EmployerOwnershipError otherwise). */

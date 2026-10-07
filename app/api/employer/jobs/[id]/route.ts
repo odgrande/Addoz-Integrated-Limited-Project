@@ -5,6 +5,8 @@ import { adminUserIds, notify } from "@/lib/notify"
 import { job } from "@/lib/db/schema"
 import { EmployerAuthError, EmployerOwnershipError, getEmployerJob, requireEmployer } from "@/features/employers/queries"
 import { deadlineFrom, durationOf, isExpired, listingDays } from "@/features/jobs/listing"
+import { getCompanyProfileMissing } from "@/features/employers/queries"
+import { listMissing } from "@/features/companies/completeness"
 
 const jobUpdateSchema = z.object({
   title: z.string().trim().min(2).max(160).optional(),
@@ -54,6 +56,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     // approved jobs can be paused, reinstated and re-published freely.
     const status = data.status === "Active" && !existing.job.approvedAt ? "Pending" : data.status
     const wasLive = existing.job.status === "Active" && !isExpired(existing.job.deadline)
+    // Going live, re-publishing or reinstating needs a complete company profile
+    if (data.status === "Active" && !wasLive) {
+      const missing = await getCompanyProfileMissing(profile.companyId)
+      if (missing.length) return Response.json({ error: `Complete your company profile before posting jobs — add ${listMissing(missing)}.`, code: "COMPANY_INCOMPLETE", missing }, { status: 409 })
+    }
     // Going live (publish, re-publish, reinstate after expiry) or entering review restarts the
     // listing clock; review keeps the duration so approval can restart it from approval day.
     const restart = (status === "Active" && !wasLive) || (status === "Pending" && existing.job.status !== "Pending")

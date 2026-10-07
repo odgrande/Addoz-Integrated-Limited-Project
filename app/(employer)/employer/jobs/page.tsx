@@ -2,7 +2,8 @@ import Link from "next/link"
 import { headers } from "next/headers"
 import { Plus } from "lucide-react"
 import { JobActions } from "@/features/employers/components/employer-ui"
-import { getEmployerJobs } from "@/features/employers/queries"
+import { getCompanyProfileMissing, getEmployerContext, getEmployerJobs } from "@/features/employers/queries"
+import { CompanyIncompleteNotice } from "@/features/employers/components/company-incomplete-notice"
 import { displayStatus, isExpired } from "@/features/jobs/listing"
 
 type View = "live" | "review" | "expired" | "archived"
@@ -25,7 +26,9 @@ const day = (value: Date | string) => new Date(value).toLocaleDateString("en-NG"
 
 export default async function EmployerJobsPage({ searchParams }: { searchParams: Promise<{ q?: string; view?: string }> }) {
   const params = await searchParams
-  const jobs = await getEmployerJobs(await headers(), params.q ?? "")
+  const requestHeaders = await headers()
+  const [jobs, context] = await Promise.all([getEmployerJobs(requestHeaders, params.q ?? ""), getEmployerContext(requestHeaders)])
+  const missing = await getCompanyProfileMissing(context.profile.companyId)
   const counts = Object.fromEntries(views.map(item => [item.id, jobs.filter(row => viewOf(row) === item.id).length])) as Record<View, number>
   const view: View = views.some(item => item.id === params.view) ? params.view as View : counts.live || !jobs.length ? "live" : (views.find(item => counts[item.id])?.id ?? "live")
   const rows = jobs.filter(row => viewOf(row) === view)
@@ -33,6 +36,7 @@ export default async function EmployerJobsPage({ searchParams }: { searchParams:
 
   return <main className="employer-page">
     <header className="app-page-header"><div><p className="app-eyebrow">Your marketplace</p><h1>Jobs</h1><p className="app-page-lead">Create roles, keep them current, and stay close to the people applying.</p></div><Link className="action-button action-primary" href="/employer/jobs/new"><Plus size={17} aria-hidden="true" />Post a job</Link></header>
+    <CompanyIncompleteNotice missing={missing} />
     <form className="employer-filter" method="get"><input type="hidden" name="view" value={view} /><label className="field"><span className="field-label">Search jobs</span><input className="input" name="q" defaultValue={params.q ?? ""} placeholder="Search by title" /></label><button className="action-button action-ghost" type="submit">Search</button></form>
     <nav className="employer-tabs" aria-label="Job lists">{views.map(item => <Link key={item.id} href={tabHref(item.id)} className={item.id === view ? "is-active" : undefined} aria-current={item.id === view ? "page" : undefined}>{item.label} <span>{counts[item.id]}</span></Link>)}</nav>
     {rows.length ? <section className="employer-panel employer-table-wrap"><table className="employer-table"><thead><tr><th>Role</th><th>Status</th><th>Location</th><th>Applicants</th><th>{view === "expired" ? "Ended" : "Ends"}</th><th><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map(item => {

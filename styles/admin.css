@@ -69,3 +69,4 @@
 .broadcast-history li:last-child { border-bottom: 0; }
 .broadcast-history p { margin: .2rem 0 0; color: var(--addoz-black-60); font-size: var(--text-sm); white-space: pre-wrap; }
 .broadcast-history small { color: var(--addoz-black-40); font-size: var(--text-xs); }
+.admin-warn { display: block; margin-top: .3rem; color: #b42318; font-size: var(--text-xs); font-weight: 700; }

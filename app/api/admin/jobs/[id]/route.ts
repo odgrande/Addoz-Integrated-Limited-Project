@@ -6,6 +6,8 @@ import { AdminAuthError, recordAdminAction, requireAdmin } from "@/features/admi
 import { companyEmployerUserIds, notify } from "@/lib/notify"
 import { deleteResumeFromStorage } from "@/lib/storage/r2"
 import { deadlineFrom, durationOf, isExpired } from "@/features/jobs/listing"
+import { getCompanyProfileMissing } from "@/features/employers/queries"
+import { listMissing } from "@/features/companies/completeness"
 
 function failure(error: unknown, fallback: string) {
   if (error instanceof AdminAuthError) return Response.json({ error: "Admin authentication required." }, { status: 401 })
@@ -32,6 +34,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       .from(job).innerJoin(company, eq(job.companyId, company.id)).where(eq(job.id, id)).limit(1)
     if (!current) return Response.json({ error: "Job not found." }, { status: 404 })
 
+    // A job only goes live for a company whose profile is complete
+    if (action === "approve" || (action === "restore" && current.approvedAt)) {
+      const missing = await getCompanyProfileMissing(current.companyId)
+      if (missing.length) return Response.json({ error: `${current.companyName}'s company profile is incomplete (missing ${listMissing(missing)}). Ask them to complete it, or decline with that reason.`, code: "COMPANY_INCOMPLETE", missing }, { status: 409 })
+    }
     const now = new Date()
     // Going live (approval, or restoring an expired/archived job) restarts the employer's chosen duration
     const relist = { postedAt: now, deadline: deadlineFrom(now, durationOf(current.postedAt, current.deadline)) }
